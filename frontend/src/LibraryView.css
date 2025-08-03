@@ -189,3 +189,12 @@
 
 .download-button:hover { background-color: #45a049; }
 .error-message { color: #ff6b6b; }
+
+.clickable-text {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.clickable-text:hover {
+  color: #61dafb; /* A color that stands out on hover */
+}

@@ -6,10 +6,12 @@ import os
 def get_book_by_path(db: Session, file_path: str):
     return db.query(models.Book).filter(models.Book.file_path == file_path).first()
 
-def get_books(db: Session, category: str | None = None, search: str | None = None):
+def get_books(db: Session, category: str | None = None, search: str | None = None, author: str | None = None):
     query = db.query(models.Book)
     if category:
         query = query.filter(models.Book.category == category)
+    if author:
+        query = query.filter(models.Book.author.ilike(f"%{author}%"))
     if search:
         search_term = f"%{search}%"
         query = query.filter(

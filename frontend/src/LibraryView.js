@@ -35,11 +35,20 @@ const BookCover = ({ src, alt, title }) => {
 
 function LibraryView() {
   const [books, setBooks] = useState([]);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const handleAuthorClick = (author) => {
+    setSearchTerm(''); // Clear general search term
+    setSearchParams({ author: author }); // Use 'author' parameter
+  };
+
+  const handleCategoryClick = (category) => {
+    setSearchParams({ category: category });
+  };
 
   const fetchBooks = useCallback(async () => {
     setLoading(true);
@@ -47,11 +56,14 @@ function LibraryView() {
     
     const params = new URLSearchParams();
     const category = searchParams.get('category');
+    const author = searchParams.get('author'); // Get the new 'author' parameter
 
     if (category) {
       params.append('category', category);
     }
-    if (debouncedSearchTerm) {
+    if (author) {
+      params.append('author', author); // Append 'author' to params
+    } else if (debouncedSearchTerm) {
       params.append('search', debouncedSearchTerm);
     }
 
@@ -120,8 +132,8 @@ function LibraryView() {
             />
             <div className="book-card-info">
               <h3>{book.title}</h3>
-              <p>{book.author}</p>
-              <span>{book.category}</span>
+              <p className="clickable-text" onClick={() => handleAuthorClick(book.author)}>{book.author}</p>
+              <span className="clickable-text" onClick={() => handleCategoryClick(book.category)}>{book.category}</span>
             </div>
             {book.file_path.toLowerCase().endsWith('.pdf') ? (
               <a 

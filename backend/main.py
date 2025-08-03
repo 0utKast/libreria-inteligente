@@ -165,8 +165,8 @@ async def upload_book(db: Session = Depends(get_db), book_file: UploadFile = Fil
     )
 
 @app.get("/books/", response_model=List[schemas.Book])
-def read_books(category: str | None = None, search: str | None = None, db: Session = Depends(get_db)):
-    return crud.get_books(db, category=category, search=search)
+def read_books(category: str | None = None, search: str | None = None, author: str | None = None, db: Session = Depends(get_db)):
+    return crud.get_books(db, category=category, search=search, author=author)
 
 @app.get("/categories/", response_model=List[str])
 def read_categories(db: Session = Depends(get_db)):
