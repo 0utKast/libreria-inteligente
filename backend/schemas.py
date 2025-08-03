@@ -15,3 +15,14 @@ class Book(BookBase):
 
 class ConversionResponse(BaseModel):
     download_url: str
+
+class RagUploadResponse(BaseModel):
+    book_id: str
+    message: str
+
+class RagQuery(BaseModel):
+    query: str
+    book_id: str
+
+class RagQueryResponse(BaseModel):
+    response: str

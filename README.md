@@ -8,6 +8,7 @@ Mi Librería Inteligente es una aplicación web que utiliza la IA multimodal de 
 - **Análisis Inteligente con IA:** Utiliza Google Gemini para extraer metadatos clave (título, autor, categoría) de tus libros, incluso si no están presentes en el archivo, y encuentra la portada.
 - **Lectura Integrada:** Lee tus libros (PDF y EPUB) directamente dentro de la aplicación, sin necesidad de software externo. Los PDF se abren en una nueva pestaña para una mejor experiencia.
 - **Conversor EPUB a PDF:** Convierte tus archivos EPUB a formato PDF directamente desde la aplicación. El PDF resultante se abre automáticamente en una nueva pestaña.
+- **Charla sobre libros con la IA (RAG):** Sube cualquier libro (PDF o EPUB) y mantén una conversación interactiva con la IA sobre su contenido. La IA priorizará la información del libro, pero también puede usar su conocimiento general para responder preguntas más amplias sobre el autor o temas relacionados.
 - **Catalogación Automática:** Guarda los libros y sus metadatos en una base de datos local.
 - **Biblioteca Visual:** Explora todos tus libros en una vista de galería intuitiva.
 - **Filtros por Categoría:** Filtra tu biblioteca por las categorías asignadas por la IA.

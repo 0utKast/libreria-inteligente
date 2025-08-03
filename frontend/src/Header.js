@@ -21,6 +21,9 @@ function Header() {
         <NavLink to="/herramientas" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
           Herramientas
         </NavLink>
+        <NavLink to="/rag" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>
+          Charla sobre libros con la IA
+        </NavLink>
       </nav>
     </header>
   );

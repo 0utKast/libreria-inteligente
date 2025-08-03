@@ -6,6 +6,7 @@ import UploadView from './UploadView';
 import CategoriesView from './CategoriesView';
 import ToolsView from './ToolsView';
 import ReaderView from './ReaderView';
+import RagView from './RagView';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             <Route path="/upload" element={<UploadView />} />
             <Route path="/etiquetas" element={<CategoriesView />} />
             <Route path="/herramientas" element={<ToolsView />} />
+            <Route path="/rag" element={<RagView />} />
             <Route path="/leer/:bookId" element={<ReaderView />} />
           </Routes>
         </main>

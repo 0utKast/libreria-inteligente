@@ -5,7 +5,7 @@ echo ========================================
 
 REM Iniciar el servidor del Backend en una nueva ventana
 echo Iniciando Backend en http://localhost:8001 ...
-START "Backend" cmd /c "cd backend && .\.venv\Scripts\activate && uvicorn main:app --reload --port 8001"
+START "Backend" cmd /c "cd backend && C:\proyectos_python\libreria\backend\.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8001"
 
 REM Iniciar el servidor del Frontend en una nueva ventana
 echo Iniciando Frontend en http://localhost:3000 ...

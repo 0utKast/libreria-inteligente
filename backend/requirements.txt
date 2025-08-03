@@ -8,3 +8,7 @@ python-dotenv
 beautifulsoup4
 sqlalchemy
 alembic
+WeasyPrint
+chromadb
+pypdf
+tiktoken
