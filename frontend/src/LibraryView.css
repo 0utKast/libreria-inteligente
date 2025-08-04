@@ -171,7 +171,7 @@
 
 .book-card-info h3 { font-size: 1.1rem; margin: 0 0 5px 0; color: white; }
 .book-card-info p { font-size: 0.9rem; margin: 0 0 10px 0; color: #ccc; }
-.book-card-info span { font-size: 0.8rem; background-color: #61dafb; color: #282c34; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
+.book-card-info span { font-size: 0.8rem; background-color: #61dafb; color: #282c34; padding: 3px 8px; border-radius: 12px; font-weight: bold; transition: background-color 0.2s ease; }
 
 .download-button {
   display: block;
@@ -197,4 +197,8 @@
 
 .clickable-text:hover {
   color: #61dafb; /* A color that stands out on hover */
+}
+
+.book-card-info span.clickable-text:hover {
+  background-color: #3aa8c8; /* Darker shade for hover */
 }

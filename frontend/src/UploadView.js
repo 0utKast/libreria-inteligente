@@ -1,24 +1,33 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './UploadView.css'; // Crearemos este archivo de estilos
+import './UploadView.css';
 
 function UploadView() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [filesToUpload, setFilesToUpload] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-    setMessage('');
+    const selectedFiles = Array.from(event.target.files);
+    const newFiles = selectedFiles.map(file => ({
+      file,
+      status: 'pending',
+      message: ''
+    }));
+    setFilesToUpload(prevFiles => [...prevFiles, ...newFiles]);
   };
 
   const handleDrop = useCallback((event) => {
     event.preventDefault();
     event.stopPropagation();
     if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-      setSelectedFile(event.dataTransfer.files[0]);
-      setMessage('');
+      const selectedFiles = Array.from(event.dataTransfer.files);
+      const newFiles = selectedFiles.map(file => ({
+        file,
+        status: 'pending',
+        message: ''
+      }));
+      setFilesToUpload(prevFiles => [...prevFiles, ...newFiles]);
       event.dataTransfer.clearData();
     }
   }, []);
@@ -28,50 +37,83 @@ function UploadView() {
     event.stopPropagation();
   };
 
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      setMessage('Por favor, selecciona un archivo primero.');
-      return;
-    }
-    const formData = new FormData();
-    formData.append('book_file', selectedFile);
-    setIsLoading(true);
-    setMessage('Analizando libro con IA... Esto puede tardar un momento.');
-
-    try {
-      const response = await fetch('http://localhost:8001/upload-book/', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-      if (response.ok) {
-        setMessage(`'${result.title}' ha sido añadido. Redirigiendo a la biblioteca...`);
-        setTimeout(() => navigate('/'), 2000); // Redirigir a la biblioteca después de 2s
-      } else {
-        setMessage(`Error: ${result.detail || 'No se pudo procesar el archivo.'}`);
-      }
-    } catch (error) {
-      setMessage('Error de conexión: No se pudo conectar con el backend.');
-    } finally {
-      setIsLoading(false);
-      setSelectedFile(null);
-    }
+  const updateFileStatus = (index, status, message) => {
+    setFilesToUpload(prevFiles => {
+      const updatedFiles = [...prevFiles];
+      updatedFiles[index] = { ...updatedFiles[index], status, message };
+      return updatedFiles;
+    });
   };
+
+  const handleUpload = async () => {
+    if (filesToUpload.length === 0) return;
+
+    setIsUploading(true);
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      if (filesToUpload[i].status !== 'pending') continue;
+
+      updateFileStatus(i, 'uploading', 'Subiendo y analizando...');
+      const formData = new FormData();
+      formData.append('book_file', filesToUpload[i].file);
+
+      try {
+        const response = await fetch('http://localhost:8001/upload-book/', {
+          method: 'POST',
+          body: formData,
+        });
+        const result = await response.json();
+        if (response.ok) {
+          updateFileStatus(i, 'success', `'${result.title}' añadido correctamente.`);
+        } else {
+          updateFileStatus(i, 'error', `Error: ${result.detail || 'No se pudo procesar'}`);
+        }
+      } catch (error) {
+        updateFileStatus(i, 'error', 'Error de conexión con el servidor.');
+      }
+    }
+    setIsUploading(false);
+  };
+  
+  const allDone = filesToUpload.every(f => f.status === 'success' || f.status === 'error');
 
   return (
     <div className="upload-view-container" onDrop={handleDrop} onDragOver={handleDragOver}>
-      <h2>Añadir Nuevo Libro</h2>
-      <p>Sube un libro (PDF o EPUB) para que la IA lo analice y lo añada a tu biblioteca.</p>
+      <h2>Añadir Nuevos Libros</h2>
+      <p>Sube uno o varios libros (PDF o EPUB) para que la IA los analice.</p>
       <div className="upload-container">
         <div className="drop-zone">
-          {selectedFile ? <p>Archivo: {selectedFile.name}</p> : <p>Arrastra y suelta un archivo aquí, o usa el botón</p>}
-          <input type="file" id="file-input" onChange={handleFileChange} accept=".pdf,.epub" />
-          <label htmlFor="file-input" className="file-label">Seleccionar archivo</label>
+          <p>Arrastra y suelta archivos aquí, o usa el botón</p>
+          <input 
+            type="file" 
+            id="file-input" 
+            onChange={handleFileChange} 
+            accept=".pdf,.epub" 
+            multiple 
+          />
+          <label htmlFor="file-input" className="file-label">Seleccionar Archivos</label>
         </div>
-        <button onClick={handleUpload} className="upload-button" disabled={isLoading}>
-          {isLoading ? 'Analizando...' : 'Analizar y Guardar Libro'}
+
+        {filesToUpload.length > 0 && (
+          <div className="file-list">
+            {filesToUpload.map((fileObj, index) => (
+              <div key={index} className={`file-item ${fileObj.status}`}>
+                <span className="file-name">{fileObj.file.name}</span>
+                <span className="file-status">{fileObj.message}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button onClick={handleUpload} className="upload-button" disabled={isUploading || filesToUpload.length === 0}>
+          {isUploading ? 'Procesando...' : `Subir ${filesToUpload.length} Archivo(s)`}
         </button>
-        {message && <p className="message">{message}</p>}
+
+        {allDone && filesToUpload.length > 0 && (
+           <button onClick={() => navigate('/')} className="library-button">
+             Ir a la Biblioteca
+           </button>
+        )}
       </div>
     </div>
   );

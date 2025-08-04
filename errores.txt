@@ -1,3 +1,13 @@
-(node:36900) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-(node:36900) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Compiled with problems:
+×
+ERROR in ./src/LibraryView.css (./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[5].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].oneOf[5].use[2]!./node_modules/source-map-loader/dist/cjs.js!./src/LibraryView.css)
+Module build failed (from ./node_modules/postcss-loader/dist/cjs.js):
+SyntaxError
+
+(202:1) C:\proyectos_python\libreria\frontend\src\LibraryView.css Unclosed block
+
+  200 | }
+  201 | 
+> 202 | .book-card-info span.clickable-text:hover {
+      | ^
+  203 |   background-color: #3aa8c8; /* Darker shade for hover */
