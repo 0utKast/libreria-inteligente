@@ -1,0 +1,34 @@
+**********************
+PowerShell transcript start
+Start time: 20250805140044
+Username: NUEVOPC\educa
+RunAs User: NUEVOPC\educa
+Configuration Name: 
+Machine: NUEVOPC (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\educa\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 24088
+PSVersion: 7.5.2
+PSEdition: Core
+GitCommitId: 7.5.2
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is C:\proyectos_python\libreria\conversacion.txt
+]633;D;0]633;A]633;P;Cwd=C:\x5cproyectos_python\x5clibreriaPS C:\proyectos_python\libreria> ]633;B
+PS>gemini
+│  Agent powering down. Goodbye!                                                                                           │
+│                                                                                                                          │
+│  Performance                                                                                                             │
+│  Wall Time:                  37.1s                                                                                       │
+│  Agent Active:               0s                                                                                          │
+│    » API Time:               0s (0.0%)                                                                                   │
+│    » Tool Time:              0s (0.0%)                                                                                   │
+│                                                                                                                          │
+│                                                                                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+]633;D;0]633;A]633;P;Cwd=C:\x5cproyectos_python\x5clibreriaPS C:\proyectos_python\libreria> ]633;B
+PS>gemini

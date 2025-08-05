@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import API_URL from './config';
 import './CategoriesView.css';
 
 function CategoriesView() {
@@ -9,8 +10,11 @@ function CategoriesView() {
 
   useEffect(() => {
     const fetchCategories = async () => {
+
+// ... (resto del código)
+
       try {
-        const response = await fetch('http://localhost:8001/categories/');
+        const response = await fetch(`${API_URL}/categories/`);
         if (response.ok) {
           const data = await response.json();
           setCategories(data);

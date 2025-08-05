@@ -2,16 +2,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px;
+  padding: 15px 20px; /* Reducido el padding para móviles */
   background-color: #20232a;
   border-bottom: 2px solid #61dafb;
   color: white;
+  position: relative; /* Necesario para el posicionamiento del menú */
 }
 
 .header-logo h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem; /* Reducido para móviles */
   color: #61dafb;
+}
+
+/* --- Estilos del Menú Hamburguesa --- */
+.hamburger-menu {
+  display: none; /* Oculto por defecto en pantallas grandes */
+  font-size: 2rem;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
 }
 
 .header-nav {
@@ -35,4 +46,45 @@
 .nav-link.active {
   color: #61dafb;
   border-bottom-color: #61dafb;
+}
+
+/* --- Media Query para Móviles --- */
+/* Se aplica a pantallas con un ancho máximo de 768px */
+@media (max-width: 768px) {
+  .hamburger-menu {
+    display: block; /* Mostramos el botón de hamburguesa */
+  }
+
+  .header-nav {
+    z-index: 100; /* Asegura que el menú esté por encima de todo */
+    display: none; /* Ocultamos la navegación normal */
+    flex-direction: column;
+    position: absolute;
+    top: 100%; /* Justo debajo del header */
+    left: 0;
+    width: 100%;
+    background-color: #282c34; /* Un poco más oscuro para diferenciar */
+    padding: 15px 0;
+    border-top: 1px solid #61dafb;
+  }
+
+  .header-nav.open {
+    display: flex; /* Mostramos el menú cuando está abierto */
+    align-items: center;
+  }
+
+  .nav-link {
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #444;
+  }
+
+  .nav-link:last-child {
+    border-bottom: none;
+  }
+
+  .nav-link.active {
+    border-bottom-color: #444; /* Evitamos la doble línea */
+  }
 }

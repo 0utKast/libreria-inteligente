@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import API_URL from './config';
 import './LibraryView.css';
 
 // Hook personalizado para debounce
@@ -67,7 +68,7 @@ function LibraryView() {
       params.append('search', debouncedSearchTerm);
     }
 
-    const url = `http://localhost:8001/books/?${params.toString()}`;
+    const url = `${API_URL}/books/?${params.toString()}`;
     
     try {
       const response = await fetch(url);
@@ -91,7 +92,7 @@ function LibraryView() {
   const handleDeleteBook = async (bookId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este libro?')) {
       try {
-        const response = await fetch(`http://localhost:8001/books/${bookId}`, { method: 'DELETE' });
+        const response = await fetch(`${API_URL}/books/${bookId}`, { method: 'DELETE' });
         if (response.ok) {
           setBooks(prevBooks => prevBooks.filter(b => b.id !== bookId));
         } else {
@@ -126,7 +127,7 @@ function LibraryView() {
           <div key={book.id} className="book-card">
             <button onClick={() => handleDeleteBook(book.id)} className="delete-book-btn" title="Eliminar libro">×</button>
             <BookCover 
-              src={book.cover_image_url ? `http://localhost:8001/${book.cover_image_url}` : ''}
+              src={book.cover_image_url ? `${API_URL}/${book.cover_image_url}` : ''}
               alt={`Portada de ${book.title}`}
               title={book.title}
             />
@@ -137,7 +138,7 @@ function LibraryView() {
             </div>
             {book.file_path.toLowerCase().endsWith('.pdf') ? (
               <a 
-                href={`http://localhost:8001/books/download/${book.id}`} 
+                href={`${API_URL}/books/download/${book.id}`} 
                 className="download-button" 
                 target="_blank" 
                 rel="noopener noreferrer"

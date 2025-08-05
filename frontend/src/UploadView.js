@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_URL from './config';
 import './UploadView.css';
 
 function UploadView() {

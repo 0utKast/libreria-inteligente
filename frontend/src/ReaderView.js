@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ReactReader } from 'react-reader';
+import API_URL from './config';
 import './ReaderView.css';
 
 function ReaderView() {
@@ -15,7 +16,7 @@ function ReaderView() {
       setIsLoading(true);
       setError('');
       try {
-        const response = await fetch(`http://localhost:8001/books/download/${bookId}`);
+        const response = await fetch(`${API_URL}/books/download/${bookId}`);
         if (!response.ok) {
           throw new Error('No se pudo obtener el libro desde el servidor.');
         }

@@ -16,6 +16,7 @@ Mi Librería Inteligente es una aplicación web que utiliza la IA multimodal de 
 - **Buscador Integrado:** Busca libros instantáneamente por título, autor o categoría.
 - **Gestión Completa:** Elimina libros individuales o categorías enteras con un solo clic.
 - **Acceso Directo:** Abre los archivos originales de tus libros directamente desde la aplicación.
+- **Diseño Responsivo:** La interfaz de usuario se adapta automáticamente a diferentes tamaños de pantalla, permitiendo una experiencia fluida tanto en ordenadores de escritorio como en dispositivos móviles (teléfonos y tablets).
 
 ## 🛠️ Tecnologías Utilizadas
 
@@ -120,7 +121,7 @@ Necesitarás dos terminales abiertas.
 - **En la Terminal 1 (para el Backend):**
   ```bash
   # Desde la carpeta 'backend' y con el entorno virtual activado
-  uvicorn main:app --reload --port 8001
+  uvicorn main:app --reload --port 8001 --host 0.0.0.0
   ```
 
 - **En la Terminal 2 (para el Frontend):**
@@ -130,6 +131,9 @@ Necesitarás dos terminales abiertas.
   ```
 
 ¡Abre tu navegador en `http://localhost:3000` y empieza a construir tu librería inteligente!
+
+**Acceso desde Dispositivos Móviles:**
+Para acceder a la aplicación desde un dispositivo móvil en la misma red, asegúrate de que el servidor backend se inicie con `--host 0.0.0.0` (como se muestra arriba). Luego, en tu dispositivo móvil, abre el navegador y navega a `http://<TU_IP_LOCAL>:3000`, donde `<TU_IP_LOCAL>` es la dirección IP de tu ordenador en la red local (por ejemplo, `http://192.168.1.100:3000`).
 
 ## 📄 Licencia
 

@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import API_URL from './config';
 import './RagView.css';
 
 function RagView() {
