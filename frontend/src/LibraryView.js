@@ -41,6 +41,18 @@ function LibraryView() {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false); // New state for mobile detection
+
+  // Effect to detect mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768); // Adjust breakpoint as needed
+    };
+
+    handleResize(); // Set initial value
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleAuthorClick = (author) => {
     setSearchTerm(''); // Clear general search term
@@ -54,7 +66,7 @@ function LibraryView() {
   const fetchBooks = useCallback(async () => {
     setLoading(true);
     setError('');
-    
+
     const params = new URLSearchParams();
     const category = searchParams.get('category');
     const author = searchParams.get('author'); // Get the new 'author' parameter
@@ -69,7 +81,7 @@ function LibraryView() {
     }
 
     const url = `${API_URL}/books/?${params.toString()}`;
-    
+
     try {
       const response = await fetch(url);
       if (response.ok) {
@@ -107,7 +119,7 @@ function LibraryView() {
   return (
     <div className="library-container">
       <h2>Mi Biblioteca</h2>
-      
+
       <div className="controls-container">
         <input
           type="text"
@@ -126,7 +138,7 @@ function LibraryView() {
         {books.map((book) => (
           <div key={book.id} className="book-card">
             <button onClick={() => handleDeleteBook(book.id)} className="delete-book-btn" title="Eliminar libro">×</button>
-            <BookCover 
+            <BookCover
               src={book.cover_image_url ? `${API_URL}/${book.cover_image_url}` : ''}
               alt={`Portada de ${book.title}`}
               title={book.title}
@@ -137,18 +149,40 @@ function LibraryView() {
               <span className="clickable-text" onClick={() => handleCategoryClick(book.category)}>{book.category}</span>
             </div>
             {book.file_path.toLowerCase().endsWith('.pdf') ? (
-              <a 
-                href={`${API_URL}/books/download/${book.id}`} 
-                className="download-button" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                Abrir PDF
-              </a>
+              <>
+                <a
+                  href={`${API_URL}/books/download/${book.id}`}
+                  className="download-button"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Abrir PDF
+                </a>
+                {isMobile && ( // Conditionally render download button for mobile
+                  <a
+                    href={`${API_URL}/books/download/${book.id}`}
+                    className="download-button"
+                    download // This attribute suggests download
+                  >
+                    Descargar PDF
+                  </a>
+                )}
+              </>
             ) : (
-              <Link to={`/leer/${book.id}`} className="download-button">
-                Leer EPUB
-              </Link>
+              <>
+                <Link to={`/leer/${book.id}`} className="download-button">
+                  Leer EPUB
+                </Link>
+                {isMobile && ( // Conditionally render download button for mobile
+                  <a
+                    href={`${API_URL}/books/download/${book.id}`}
+                    className="download-button"
+                    download // This attribute suggests download
+                  >
+                    Descargar EPUB
+                  </a>
+                )}
+              </>
             )}
           </div>
         ))}
