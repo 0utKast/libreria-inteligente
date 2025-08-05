@@ -113,7 +113,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/temp_books", StaticFiles(directory=STATIC_TEMP_DIR), name="temp_books")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://192.168.18.2:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

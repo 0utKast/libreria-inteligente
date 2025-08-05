@@ -42,7 +42,7 @@ function RagView() {
     setMessage('Procesando libro para RAG... Esto puede tardar un momento.');
 
     try {
-      const response = await fetch('http://localhost:8001/rag/upload-book/', {
+      const response = await fetch(`${API_URL}/rag/upload-book/`, {
         method: 'POST',
         body: formData,
       });
@@ -76,7 +76,7 @@ function RagView() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8001/rag/query/', {
+      const response = await fetch(`${API_URL}/rag/query/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

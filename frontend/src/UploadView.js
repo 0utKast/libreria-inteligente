@@ -59,7 +59,7 @@ function UploadView() {
       formData.append('book_file', filesToUpload[i].file);
 
       try {
-        const response = await fetch('http://localhost:8001/upload-book/', {
+        const response = await fetch(`${API_URL}/upload-book/`, {
           method: 'POST',
           body: formData,
         });
