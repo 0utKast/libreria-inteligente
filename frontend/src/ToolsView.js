@@ -43,7 +43,7 @@ function EpubToPdfConverter() {
     setMessage('Convirtiendo archivo... Esto puede tardar un momento.');
 
     try {
-      const response = await fetch('http://localhost:8001/tools/convert-epub-to-pdf', {
+      const response = await fetch(`${API_URL}/tools/convert-epub-to-pdf`, {
         method: 'POST',
         body: formData,
       });
@@ -51,7 +51,7 @@ function EpubToPdfConverter() {
       if (response.ok) {
         // El backend ahora devuelve un JSON con la URL de descarga
         const result = await response.json();
-        const downloadUrl = `http://localhost:8001${result.download_url}`;
+        const downloadUrl = `${API_URL}${result.download_url}`;
         
         // Crear un enlace y hacer clic para iniciar la descarga
         const a = document.createElement('a');
