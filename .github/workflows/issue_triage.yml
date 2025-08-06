@@ -1,0 +1,64 @@
+name: Intelligent Issue Triage
+
+on:
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write # Permite que el workflow escriba en las issues (ej. añadir etiquetas)
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' # Usa la versión de Python que prefieras, 3.x es una buena opción general
+
+    - name: Install Gemini CLI
+      run: pip install google-generativeai-cli
+
+    - name: Get Issue Details
+      id: get_issue
+      run: |
+        ISSUE_TITLE="${{ github.event.issue.title }}"
+        ISSUE_BODY="${{ github.event.issue.body }}"
+        ISSUE_NUMBER="${{ github.event.issue.number }}"
+        echo "Issue Title: $ISSUE_TITLE"
+        echo "Issue Body: $ISSUE_BODY"
+        echo "Issue Number: $ISSUE_NUMBER"
+        echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
+        echo "issue_body=$ISSUE_BODY" >> $GITHUB_OUTPUT
+        echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+
+    - name: Call Gemini CLI for Triage
+      id: gemini_triage
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Asegúrate de configurar esta variable como un secreto en tu repositorio
+      run: |
+        # Aquí es donde integrarás la lógica de Gemini CLI
+        # Por ejemplo:
+        # response=$(gemini-cli generate-content "Clasifica la siguiente incidencia: Título: ${{ steps.get_issue.outputs.issue_title }}. Cuerpo: ${{ steps.get_issue.outputs.issue_body }}" --model gemini-pro)
+        # echo "Gemini Response: $response"
+        # echo "gemini_output=$response" >> $GITHUB_OUTPUT
+        echo "Simulating Gemini Triage: Suggested Label: bug, Priority: high"
+        echo "suggested_label=bug" >> $GITHUB_OUTPUT
+        echo "suggested_priority=high" >> $GITHUB_OUTPUT
+
+    - name: Update Issue with Triage Results
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token proporcionado automáticamente por GitHub Actions
+      run: |
+        ISSUE_NUMBER="${{ steps.get_issue.outputs.issue_number }}"
+        SUGGESTED_LABEL="${{ steps.gemini_triage.outputs.suggested_label }}"
+        SUGGESTED_PRIORITY="${{ steps.gemini_triage.outputs.suggested_priority }}"
+
+        echo "Adding label '$SUGGESTED_LABEL' to issue #$ISSUE_NUMBER"
+        gh issue edit $ISSUE_NUMBER --add-label "$SUGGESTED_LABEL" --repo ${{ github.repository }}
+
+        echo "Adding comment with suggested priority '$SUGGESTED_PRIORITY' to issue #$ISSUE_NUMBER" 
+        gh issue comment $ISSUE_NUMBER --body "Gemini Triage Suggestion: Priority: $SUGGESTED_PRIORITY" --repo ${{ github.repository }}
