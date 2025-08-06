@@ -20,7 +20,7 @@ jobs:
         python-version: '3.x' # Usa la versión de Python que prefieras, 3.x es una buena opción general
 
     - name: Install Gemini CLI
-      run: pip install google-generativeai-cli
+      run: pip install gemini-cli
 
     - name: Install jq
       run: sudo apt-get install -y jq
