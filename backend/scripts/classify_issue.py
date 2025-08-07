@@ -18,7 +18,7 @@ def classify_issue(title: str, body: str):
             raise Exception("No models supporting generateContent found. API key or connectivity issue?")
         print("DEBUG: API key and connectivity verified.", file=sys.stderr, flush=True)
 
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-1.5-pro-latest')
 
         prompt = f"""Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
 
