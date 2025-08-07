@@ -53,7 +53,9 @@ jobs:
           fi
 
           REVIEW_OUTPUT=$(echo "${JSON_OUTPUT}" | jq -r '.review')
-          echo "review_output=${REVIEW_OUTPUT}" >> $GITHUB_OUTPUT
+          echo "review_output<<EOF" >> $GITHUB_OUTPUT
+          echo "${REVIEW_OUTPUT}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Post PR Review Comment
         env:
