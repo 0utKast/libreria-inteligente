@@ -82,5 +82,9 @@ jobs:
         echo "Adding label '$SUGGESTED_LABEL' to issue #$ISSUE_NUMBER"
         gh issue edit $ISSUE_NUMBER --add-label "$SUGGESTED_LABEL" --repo ${{ github.repository }}
 
+        # Sugerencia: Añadir también la prioridad como una etiqueta para mejor filtrado
+        echo "Adding priority label 'priority: $SUGGESTED_PRIORITY' to issue #$ISSUE_NUMBER"
+        gh issue edit $ISSUE_NUMBER --add-label "priority: $SUGGESTED_PRIORITY" --repo ${{ github.repository }}
+
         echo "Adding comment with suggested priority '$SUGGESTED_PRIORITY' to issue #$ISSUE_NUMBER" 
         gh issue comment $ISSUE_NUMBER --body "Gemini Triage Suggestion: Priority: $SUGGESTED_PRIORITY" --repo ${{ github.repository }}
