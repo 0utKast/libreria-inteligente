@@ -46,10 +46,12 @@ jobs:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         ISSUE_TITLE="${{ steps.get_issue.outputs.issue_title }}"
-        ISSUE_BODY="${{ steps.get_issue.outputs.issue_body }}"
 
         # Construye el prompt para Gemini
-        PROMPT="Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').\n\nTítulo: ${ISSUE_TITLE}\nCuerpo: ${ISSUE_BODY}"
+        PROMPT="Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
+
+Título: ${ISSUE_TITLE}
+Cuerpo: ${{ steps.get_issue.outputs.issue_body }}"
 
         # Llama a Gemini CLI y parsea la respuesta JSON
         GEMINI_RESPONSE=$(gemini-cli generate-content "${PROMPT}" --model gemini-pro)
@@ -73,6 +75,7 @@ jobs:
 
         echo "suggested_label=${SUGGESTED_LABEL}" >> $GITHUB_OUTPUT
         echo "suggested_priority=${SUGGESTED_PRIORITY}" >> $GITHUB_OUTPUT
+
 
     - name: Update Issue with Triage Results
       env:
