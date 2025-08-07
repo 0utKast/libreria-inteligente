@@ -1,0 +1,50 @@
+name: 'Gemini AI: PR Review'
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install -y gh
+
+      - name: Get PR Diff
+        id: get_diff
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
+          echo "pr_diff<<EOF" >> $GITHUB_OUTPUT
+          echo "$PR_DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Call Gemini for PR Review (Placeholder)
+        id: gemini_review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # This step will eventually call a Python script to interact with Gemini
+          # For now, it's a placeholder.
+          echo "Reviewing PR..."
+          echo "review_output=Placeholder review from Gemini" >> $GITHUB_OUTPUT
+
+      - name: Post PR Review Comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REVIEW_COMMENT="${{ steps.gemini_review.outputs.review_output }}"
+          gh pr comment $PR_NUMBER --body "$REVIEW_COMMENT" --repo ${{ github.repository }}
