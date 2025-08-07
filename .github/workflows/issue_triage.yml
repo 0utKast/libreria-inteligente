@@ -19,17 +19,6 @@ jobs:
       with:
         python-version: '3.x' # Usa la versión de Python que prefieras, 3.x es una buena opción general
 
-    - name: Cache Python dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
-    - name: Install Python dependencies
-      run: pip install -r backend/requirements.txt
-
     - name: Install Gemini CLI
       run: pip install gemini-cli
 
