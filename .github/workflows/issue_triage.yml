@@ -52,7 +52,7 @@ jobs:
         bash backend/scripts/build_gemini_prompt.sh "${ISSUE_TITLE}" "${{ steps.get_issue.outputs.issue_body }}" "${PROMPT_FILE}"
 
         # Llama a Gemini CLI y parsea la respuesta JSON
-        GEMINI_RESPONSE=$(gemini-cli --model gemini-pro < "${PROMPT_FILE}")
+        GEMINI_RESPONSE=$(gemini-cli --model gemini-pro "$(cat "${PROMPT_FILE}")")
         echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
         # Limpia el archivo temporal
