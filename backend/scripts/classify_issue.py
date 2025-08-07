@@ -41,12 +41,16 @@ Cuerpo: {body}
         error_traceback = traceback.format_exc()
         error_output = {"error": str(e), "traceback": error_traceback, "raw_response": response.text if 'response' in locals() else "No response"}
         print(json.dumps(error_output))
+        sys.stdout.flush()
+        sys.stderr.flush()
         sys.exit(1)
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         error_output = {"error": "Usage: python classify_issue.py <issue_title> <issue_body>"}
         print(json.dumps(error_output))
+        sys.stdout.flush()
+        sys.stderr.flush()
         sys.exit(1)
     
     issue_title = sys.argv[1]
