@@ -40,31 +40,24 @@ jobs:
         echo "$ISSUE_BODY" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: Call Gemini CLI for Triage
+    - name: Call Gemini for Triage (Python SDK)
       id: gemini_triage
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         ISSUE_TITLE="${{ steps.get_issue.outputs.issue_title }}"
+        ISSUE_BODY="${{ steps.get_issue.outputs.issue_body }}"
 
-        # Llama al script para construir el prompt y guardarlo en un archivo temporal
-        PROMPT_FILE="prompt_${GITHUB_RUN_ID}.txt"
-        bash backend/scripts/build_gemini_prompt.sh "${ISSUE_TITLE}" "${{ steps.get_issue.outputs.issue_body }}" "${PROMPT_FILE}"
-
-        # Llama a Gemini CLI y parsea la respuesta JSON
-        GEMINI_RESPONSE=$(gemini-cli --model gemini-pro "$(cat "${PROMPT_FILE}")")
+        # Llama al script de Python para clasificar la incidencia
+        GEMINI_RESPONSE=$(python backend/scripts/classify_issue.py "${ISSUE_TITLE}" "${ISSUE_BODY}")
         echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
-        # Limpia el archivo temporal
-        rm "${PROMPT_FILE}"
-
         # Extrae el contenido JSON de la respuesta de Gemini
-        # Asumimos que la respuesta de Gemini es un JSON válido directamente o está dentro de un bloque de código
-        # Si Gemini envuelve el JSON en markdown, necesitamos extraerlo
-        JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | sed 's/```json//g' | sed 's/```//g' | jq -c .)
+        JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
 
-        if [ -z "$JSON_OUTPUT" ]; then
-          echo "Error: Gemini did not return valid JSON." >&2
+        if [ -z "$JSON_OUTPUT" ] || echo "$JSON_OUTPUT" | jq -e '.error' >/dev/null; then
+          echo "Error: Gemini did not return valid JSON or returned an error." >&2
+          echo "$GEMINI_RESPONSE" >&2
           exit 1
         fi
 
