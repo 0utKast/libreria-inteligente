@@ -48,13 +48,10 @@ jobs:
         ISSUE_TITLE="${{ steps.get_issue.outputs.issue_title }}"
 
         # Construye el prompt para Gemini
-        PROMPT_TEMPLATE="""
-Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
+        PROMPT_CONTENT="Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
 
-Título: %s
-Cuerpo: %s
-"""
-        printf -v PROMPT_CONTENT "$PROMPT_TEMPLATE" "${ISSUE_TITLE}" "${{ steps.get_issue.outputs.issue_body }}"
+Título: ${ISSUE_TITLE}
+Cuerpo: ${{ steps.get_issue.outputs.issue_body }}"
 
         # Llama a Gemini CLI y parsea la respuesta JSON
         GEMINI_RESPONSE=$(gemini-cli "${PROMPT_CONTENT}" --model gemini-pro)
