@@ -5,27 +5,36 @@ import traceback
 import google.generativeai as genai
 
 def classify_issue(title: str, body: str):
-    print(f"DEBUG: Initializing Gemini API with key: {os.environ.get("GEMINI_API_KEY")[:5]}...", file=sys.stderr)
+    print(f"DEBUG: Initializing Gemini API with key: {os.environ.get("GEMINI_API_KEY")[:5]}...", file=sys.stderr, flush=True)
     genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
-    model = genai.GenerativeModel('gemini-pro')
+    try:
+        print("DEBUG: Attempting to list models to verify API key and connectivity...", file=sys.stderr, flush=True)
+        for m in genai.list_models():
+            if "generateContent" in m.supported_generation_methods:
+                print(f"DEBUG: Found model: {m.name}", file=sys.stderr, flush=True)
+                break
+        else:
+            raise Exception("No models supporting generateContent found. API key or connectivity issue?")
+        print("DEBUG: API key and connectivity verified.", file=sys.stderr, flush=True)
 
-    prompt = f"""Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
+        model = genai.GenerativeModel('gemini-pro')
+
+        prompt = f"""Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
 
 Título: {title}
 Cuerpo: {body}
 """
-    print(f"DEBUG: Prompting Gemini with: {prompt}", file=sys.stderr)
+        print(f"DEBUG: Prompting Gemini with: {prompt}", file=sys.stderr, flush=True)
 
-    try:
-        print("DEBUG: Calling model.generate_content...", file=sys.stderr)
+        print("DEBUG: Calling model.generate_content...", file=sys.stderr, flush=True)
         response = model.generate_content(prompt)
-        print("DEBUG: model.generate_content call completed.", file=sys.stderr)
-        print(f"DEBUG: Raw Gemini response: {response.text}", file=sys.stderr)
+        print("DEBUG: model.generate_content call completed.", file=sys.stderr, flush=True)
+        print(f"DEBUG: Raw Gemini response: {response.text}", file=sys.stderr, flush=True)
         # Asumimos que la respuesta de Gemini es un JSON válido directamente o está dentro de un bloque de código
         # Si Gemini envuelve el JSON en markdown, necesitamos extraerlo
         text_response = response.text.replace('```json', '').replace('```', '').strip()
-        print(f"DEBUG: Cleaned Gemini response: {text_response}", file=sys.stderr)
+        print(f"DEBUG: Cleaned Gemini response: {text_response}", file=sys.stderr, flush=True)
         classification = json.loads(text_response)
         print(json.dumps(classification))
     except Exception as e:
