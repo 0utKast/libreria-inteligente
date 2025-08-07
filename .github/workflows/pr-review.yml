@@ -53,14 +53,14 @@ jobs:
           fi
 
           REVIEW_OUTPUT=$(echo "${JSON_OUTPUT}" | jq -r '.review')
-          echo "review_output<<EOF" >> $GITHUB_OUTPUT
-          echo "${REVIEW_OUTPUT}" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          REVIEW_FILE=$(mktemp)
+          echo "${REVIEW_OUTPUT}" > "$REVIEW_FILE"
+          echo "review_file=$REVIEW_FILE" >> $GITHUB_OUTPUT
 
       - name: Post PR Review Comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          REVIEW_COMMENT="${{ steps.gemini_review.outputs.review_output }}"
-          gh pr comment $PR_NUMBER --body "$REVIEW_COMMENT" --repo ${{ github.repository }}
+          REVIEW_FILE="${{ steps.gemini_review.outputs.review_file }}"
+          gh pr comment $PR_NUMBER --body-file "$REVIEW_FILE" --repo ${{ github.repository }}
