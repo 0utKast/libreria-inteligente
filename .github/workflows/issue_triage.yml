@@ -47,8 +47,11 @@ jobs:
       run: |
         ISSUE_TITLE="${{ steps.get_issue.outputs.issue_title }}"
 
-        # Llama al script para construir el prompt y pasarlo a Gemini CLI
-        GEMINI_RESPONSE=$(bash backend/scripts/build_gemini_prompt.sh "${ISSUE_TITLE}" "${{ steps.get_issue.outputs.issue_body }}" | gemini-cli --model gemini-pro)
+        # Llama al script para construir el prompt
+        PROMPT_FOR_GEMINI=$(bash backend/scripts/build_gemini_prompt.sh "${ISSUE_TITLE}" "${{ steps.get_issue.outputs.issue_body }}")
+
+        # Llama a Gemini CLI y parsea la respuesta JSON
+        GEMINI_RESPONSE=$(gemini-cli "${PROMPT_FOR_GEMINI}" --model gemini-pro)
         echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
         # Extrae el contenido JSON de la respuesta de Gemini
