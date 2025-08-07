@@ -19,6 +19,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install Python dependencies
+        run: pip install -r backend/requirements.txt
+
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
 
@@ -31,15 +34,25 @@ jobs:
           echo "$PR_DIFF" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Call Gemini for PR Review (Placeholder)
+      - name: Call Gemini for PR Review
         id: gemini_review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          # This step will eventually call a Python script to interact with Gemini
-          # For now, it's a placeholder.
-          echo "Reviewing PR..."
-          echo "review_output=Placeholder review from Gemini" >> $GITHUB_OUTPUT
+          PR_DIFF="${{ steps.get_diff.outputs.pr_diff }}"
+          GEMINI_RESPONSE=$(python backend/scripts/review_pr.py "${PR_DIFF}")
+          echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
+
+          JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
+
+          if [ -z "$JSON_OUTPUT" ] || echo "$JSON_OUTPUT" | jq -e '.error' >/dev/null; then
+            echo "Error: Gemini did not return valid JSON or returned an error." >&2
+            echo "$GEMINI_RESPONSE" >&2
+            exit 1
+          fi
+
+          REVIEW_OUTPUT=$(echo "${JSON_OUTPUT}" | jq -r '.review')
+          echo "review_output=${REVIEW_OUTPUT}" >> $GITHUB_OUTPUT
 
       - name: Post PR Review Comment
         env:
