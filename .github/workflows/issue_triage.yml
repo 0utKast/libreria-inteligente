@@ -35,8 +35,10 @@ jobs:
         echo "Issue Body: $ISSUE_BODY"
         echo "Issue Number: $ISSUE_NUMBER"
         echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
-        echo "issue_body=$ISSUE_BODY" >> $GITHUB_OUTPUT
         echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+        echo "issue_body<<EOF" >> $GITHUB_OUTPUT
+        echo "$ISSUE_BODY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Call Gemini CLI for Triage
       id: gemini_triage
