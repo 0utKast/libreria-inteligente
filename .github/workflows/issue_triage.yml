@@ -47,16 +47,8 @@ jobs:
       run: |
         ISSUE_TITLE="${{ steps.get_issue.outputs.issue_title }}"
 
-        # Construye el prompt para Gemini y lo guarda en un archivo temporal
-        cat <<EOF > prompt.txt
-Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
-
-Título: ${ISSUE_TITLE}
-Cuerpo: ${{ steps.get_issue.outputs.issue_body }}
-EOF
-
-        # Llama a Gemini CLI y parsea la respuesta JSON
-        GEMINI_RESPONSE=$(gemini-cli --model gemini-pro < prompt.txt)
+        # Llama al script para construir el prompt y pasarlo a Gemini CLI
+        GEMINI_RESPONSE=$(bash backend/scripts/build_gemini_prompt.sh "${ISSUE_TITLE}" "${{ steps.get_issue.outputs.issue_body }}" | gemini-cli --model gemini-pro)
         echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
         # Extrae el contenido JSON de la respuesta de Gemini
