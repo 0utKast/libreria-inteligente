@@ -31,18 +31,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
-          echo "pr_diff<<EOF" >> $GITHUB_OUTPUT
-          echo "$PR_DIFF" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          PR_DIFF_FILE=$(mktemp)
+          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > "$PR_DIFF_FILE"
+          echo "pr_diff_file=$PR_DIFF_FILE" >> $GITHUB_OUTPUT
 
       - name: Call Gemini for PR Review
         id: gemini_review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          PR_DIFF="${{ steps.get_diff.outputs.pr_diff }}"
-          GEMINI_RESPONSE=$(python backend/scripts/review_pr.py "${PR_DIFF}")
+          PR_DIFF_FILE="${{ steps.get_diff.outputs.pr_diff_file }}"
+          GEMINI_RESPONSE=$(python backend/scripts/review_pr.py "$PR_DIFF_FILE")
           echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
           JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
