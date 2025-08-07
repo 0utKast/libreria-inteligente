@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import traceback
 import google.generativeai as genai
 
 def classify_issue(title: str, body: str):
@@ -17,7 +18,9 @@ Cuerpo: {body}
     print(f"DEBUG: Prompting Gemini with: {prompt}", file=sys.stderr)
 
     try:
+        print("DEBUG: Calling model.generate_content...", file=sys.stderr)
         response = model.generate_content(prompt)
+        print("DEBUG: model.generate_content call completed.", file=sys.stderr)
         print(f"DEBUG: Raw Gemini response: {response.text}", file=sys.stderr)
         # Asumimos que la respuesta de Gemini es un JSON válido directamente o está dentro de un bloque de código
         # Si Gemini envuelve el JSON en markdown, necesitamos extraerlo
@@ -26,7 +29,8 @@ Cuerpo: {body}
         classification = json.loads(text_response)
         print(json.dumps(classification))
     except Exception as e:
-        error_output = {"error": str(e), "raw_response": response.text if 'response' in locals() else "No response"}
+        error_traceback = traceback.format_exc()
+        error_output = {"error": str(e), "traceback": error_traceback, "raw_response": response.text if 'response' in locals() else "No response"}
         print(json.dumps(error_output))
         sys.exit(1)
 
