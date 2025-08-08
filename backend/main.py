@@ -1,3 +1,4 @@
+# --- Cambio Inicial ---
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
