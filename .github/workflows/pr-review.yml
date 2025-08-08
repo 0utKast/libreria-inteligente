@@ -48,7 +48,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           PR_DIFF_FILE="${{ steps.get_diff.outputs.pr_diff_file }}"
-          GEMINI_RESPONSE=$(python backend/scripts/review_pr.py "$PR_DIFF_FILE")
+          GEMINI_RESPONSE=$(cat "$PR_DIFF_FILE" | python backend/scripts/review_pr.py)
           echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
           JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
