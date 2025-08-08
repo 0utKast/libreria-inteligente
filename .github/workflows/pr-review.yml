@@ -35,6 +35,13 @@ jobs:
           gh pr diff $PR_NUMBER --repo ${{ github.repository }} > "$PR_DIFF_FILE"
           echo "pr_diff_file=$PR_DIFF_FILE" >> $GITHUB_OUTPUT
 
+      - name: Debug - Print PR Diff File Content
+        run: |
+          PR_DIFF_FILE="${{ steps.get_diff.outputs.pr_diff_file }}"
+          echo "--- Content of PR Diff File ---"
+          cat "$PR_DIFF_FILE"
+          echo "--- End of PR Diff File Content ---"
+
       - name: Call Gemini for PR Review
         id: gemini_review
         env:
