@@ -6,6 +6,12 @@ import os
 def get_book_by_path(db: Session, file_path: str):
     return db.query(models.Book).filter(models.Book.file_path == file_path).first()
 
+def get_book_by_title(db: Session, title: str):
+    return db.query(models.Book).filter(models.Book.title == title).first()
+
+def get_books_by_partial_title(db: Session, title: str, skip: int = 0, limit: int = 100):
+    return db.query(models.Book).filter(models.Book.title.contains(title)).offset(skip).limit(limit).all()
+
 def get_books(db: Session, category: str | None = None, search: str | None = None, author: str | None = None):
     query = db.query(models.Book)
     if category:
@@ -68,3 +74,6 @@ def delete_books_by_category(db: Session, category: str):
     count = len(books_to_delete)
     db.commit()
     return count
+
+def get_books_count(db: Session) -> int:
+    return db.query(models.Book).count()

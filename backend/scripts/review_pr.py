@@ -30,12 +30,5 @@ Diff de la Pull Request:
         sys.exit(1)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        error_output = {"error": "Usage: python review_pr.py <pr_diff>"}
-        print(json.dumps(error_output))
-        sys.stdout.flush()
-        sys.stderr.flush()
-        sys.exit(1)
-    
-    pr_diff_content = sys.argv[1]
+    pr_diff_content = sys.stdin.read()
     review_pull_request(pr_diff_content)
