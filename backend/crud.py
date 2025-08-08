@@ -74,3 +74,6 @@ def delete_books_by_category(db: Session, category: str):
     count = len(books_to_delete)
     db.commit()
     return count
+
+def get_books_count(db: Session) -> int:
+    return db.query(models.Book).count()

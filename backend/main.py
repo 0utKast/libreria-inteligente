@@ -168,6 +168,10 @@ async def upload_book(db: Session = Depends(get_db), book_file: UploadFile = Fil
 def read_books(category: str | None = None, search: str | None = None, author: str | None = None, db: Session = Depends(get_db)):
     return crud.get_books(db, category=category, search=search, author=author)
 
+@app.get("/books/count", response_model=int)
+def get_books_count(db: Session = Depends(get_db)):
+    return crud.get_books_count(db)
+
 @app.get("/books/search/", response_model=List[schemas.Book])
 def search_books(title: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     books = crud.get_books_by_partial_title(db, title=title, skip=skip, limit=limit)

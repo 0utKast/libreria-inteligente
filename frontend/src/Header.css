@@ -15,6 +15,12 @@
   color: #61dafb;
 }
 
+.book-count {
+  font-size: 0.8em;
+  color: #ccc;
+  margin-top: 5px;
+}
+
 /* --- Estilos del Menú Hamburguesa --- */
 .hamburger-menu {
   display: none; /* Oculto por defecto en pantallas grandes */
