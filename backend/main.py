@@ -1,6 +1,4 @@
-# --- Cambio Inicial ---
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Response
-# Pequeño cambio para activar el workflow de PR review (final test)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
