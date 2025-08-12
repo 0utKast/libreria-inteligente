@@ -2,22 +2,17 @@ import os
 import sys
 import json
 import traceback
-import google.generativeai as genai
+from google import genai # Changed import
 
 def classify_issue(title: str, body: str):
-    # El nuevo SDK de Google busca la clave en la variable de entorno 'GOOGLE_API_KEY'.
-    # Para mantener la compatibilidad, leeremos 'GEMINI_API_KEY' si 'GOOGLE_API_KEY' no está presente.
     api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
-    os.environ['GOOGLE_API_KEY'] = api_key
-    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
-    genai.configure(api_key=api_key)
+    # genai.configure(api_key=api_key) # Removed this line
     print(f"DEBUG: Initializing Gemini API with key: {api_key[:5]}...", file=sys.stderr, flush=True)
 
     try:
+        client = genai.Client(api_key=api_key) # Instantiate client with API key
         print("DEBUG: Attempting to list models to verify API key and connectivity...", file=sys.stderr, flush=True)
         for m in genai.list_models():
             if "generateContent" in m.supported_generation_methods:
@@ -27,7 +22,7 @@ def classify_issue(title: str, body: str):
             raise Exception("No models supporting generateContent found. API key or connectivity issue?")
         print("DEBUG: API key and connectivity verified.", file=sys.stderr, flush=True)
 
-        model = genai.GenerativeModel('gemini-1.5-pro-latest')
+        model = client.get_model('gemini-1.5-pro-latest') # Get model from client
 
         prompt = f"""Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
 

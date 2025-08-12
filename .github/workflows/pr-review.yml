@@ -20,7 +20,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Python dependencies
-        run: pip install google-generativeai --no-cache-dir --force-reinstall
+        run: pip install google-genai --no-cache-dir --force-reinstall
 
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
