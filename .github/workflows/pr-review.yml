@@ -25,23 +25,14 @@ jobs:
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
 
-      - name: Get PR Diff
-        id: get_diff
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          PR_DIFF_FILE=$(mktemp)
-          gh pr diff $PR_NUMBER --repo ${{ github.repository }} > "$PR_DIFF_FILE"
-          echo "pr_diff_file=$PR_DIFF_FILE" >> $GITHUB_OUTPUT
-
       - name: Call Gemini for PR Review
         id: gemini_review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          PR_DIFF_FILE="${{ steps.get_diff.outputs.pr_diff_file }}"
-          GEMINI_RESPONSE=$(cat "$PR_DIFF_FILE" | python backend/scripts/review_pr.py)
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          # Capture only stdout from the python script, stderr will go to workflow logs
+          GEMINI_RESPONSE=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }} | python backend/scripts/review_pr.py)
           echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
           JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
@@ -68,5 +59,4 @@ jobs:
       - name: Cleanup temporary files
         if: always()
         run: |
-          rm -f "${{ steps.get_diff.outputs.pr_diff_file }}"
           rm -f "${{ steps.gemini_review.outputs.review_file }}"

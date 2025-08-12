@@ -5,6 +5,7 @@ import './Header.css';
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [bookCount, setBookCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     const fetchBookCount = async () => {
@@ -15,15 +16,18 @@ function Header() {
         }
         const count = await response.json();
         setBookCount(count);
+        setErrorMessage(null); // Clear any previous error
       } catch (error) {
         console.error("Error fetching book count:", error);
+        setErrorMessage("Error al cargar el contador de libros.");
+        setBookCount(0); // Clear book count on error
       }
     };
 
     fetchBookCount();
 
-    // Optional: Refetch count periodically or on specific events if needed
-    const intervalId = setInterval(fetchBookCount, 30000); // Refetch every 30 seconds
+    // Refetch count periodically (every 5 minutes)
+    const intervalId = setInterval(fetchBookCount, 300000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -37,6 +41,9 @@ function Header() {
         <h1>📚 Librería Inteligente</h1>
         {bookCount > 0 && (
           <p className="book-count">{bookCount} libros en la biblioteca</p>
+        )}
+        {errorMessage && (
+          <p className="error-message">{errorMessage}</p>
         )}
       </div>
       <button className="hamburger-menu" onClick={() => setMenuOpen(!menuOpen)}>

@@ -24,7 +24,7 @@ Diff de la Pull Request:
     except Exception as e:
         error_traceback = traceback.format_exc()
         error_output = {"error": str(e), "traceback": error_traceback, "raw_response": response.text if 'response' in locals() else "No response"}
-        print(json.dumps(error_output))
+        print(json.dumps(error_output), file=sys.stderr)
         sys.stdout.flush()
         sys.stderr.flush()
         sys.exit(1)

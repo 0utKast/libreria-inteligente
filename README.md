@@ -138,5 +138,3 @@ Para acceder a la aplicación desde un dispositivo móvil en la misma red, aseg�
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
-
-Esta línea se añade para una demostración de revisión de PR.

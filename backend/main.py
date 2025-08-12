@@ -170,10 +170,12 @@ def read_books(category: str | None = None, search: str | None = None, author: s
 
 @app.get("/books/count", response_model=int)
 def get_books_count(db: Session = Depends(get_db)):
+    """Obtiene el número total de libros en la biblioteca."""
     return crud.get_books_count(db)
 
 @app.get("/books/search/", response_model=List[schemas.Book])
 def search_books(title: str, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """Busca libros por un título parcial, con opciones de paginación."""
     books = crud.get_books_by_partial_title(db, title=title, skip=skip, limit=limit)
     return books
 
