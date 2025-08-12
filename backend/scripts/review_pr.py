@@ -12,7 +12,7 @@ def review_pull_request(pr_diff: str):
 
     try:
         client = genai.Client(api_key=api_key) # Instantiate client with API key
-        model = client.get_model('gemini-1.5-pro-latest') # Get model from client
+        # model = client.get_model('gemini-1.5-pro-latest') # Incorrect way to get model
 
         prompt = f"""Revisa el siguiente diff de Pull Request en busca de problemas de calidad de código, estilo, posibles errores, y sugerencias de mejora. Proporciona tu retroalimentación en un formato conciso y claro, utilizando Markdown.
 
@@ -21,7 +21,7 @@ Diff de la Pull Request:
 {pr_diff}
 ```
 """
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(model='gemini-1.5-pro-latest', contents=prompt)
         review_text = response.text
         print(json.dumps({"review": review_text}))
 

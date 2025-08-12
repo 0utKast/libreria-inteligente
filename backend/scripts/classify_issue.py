@@ -14,15 +14,15 @@ def classify_issue(title: str, body: str):
     try:
         client = genai.Client(api_key=api_key) # Instantiate client with API key
         print("DEBUG: Attempting to list models to verify API key and connectivity...", file=sys.stderr, flush=True)
-        for m in genai.list_models():
+        for m in client.models.list(): # New way to list models
             if "generateContent" in m.supported_generation_methods:
                 print(f"DEBUG: Found model: {m.name}", file=sys.stderr, flush=True)
                 break
         else:
             raise Exception("No models supporting generateContent found. API key or connectivity issue?")
-        print("DEBUG: API key and connectivity verified.", file=sys.stderr, flush=True)
+        print("DEBUG: API key and connectivity verified.\n", file=sys.stderr, flush=True) # Added newline for clarity
 
-        model = client.get_model('gemini-1.5-pro-latest') # Get model from client
+        # model = client.get_model('gemini-1.5-pro-latest') # Old way to get model
 
         prompt = f"""Clasifica la siguiente incidencia de GitHub. Devuelve la respuesta en formato JSON con las claves 'label' (ej. 'bug', 'feature', 'documentation', 'enhancement') y 'priority' (ej. 'low', 'medium', 'high', 'critical').
 
@@ -31,8 +31,9 @@ Cuerpo: {body}
 """
         print(f"DEBUG: Prompting Gemini with: {prompt}", file=sys.stderr, flush=True)
 
-        print("DEBUG: Calling model.generate_content...", file=sys.stderr, flush=True)
-        response = model.generate_content(prompt)
+        print("DEBUG: Calling client.models.generate_content...", file=sys.stderr, flush=True) # Changed print
+        response = client.models.generate_content(model='gemini-1.5-pro-latest', contents=prompt)
+
         print("DEBUG: model.generate_content call completed.", file=sys.stderr, flush=True)
         print(f"DEBUG: Raw Gemini response: {response.text}", file=sys.stderr, flush=True)
         # Asumimos que la respuesta de Gemini es un JSON válido directamente o está dentro de un bloque de código
