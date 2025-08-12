@@ -10,8 +10,10 @@ import tiktoken
 
 # Load environment variables
 load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
+API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not API_KEY:
+    raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
+genai.configure(api_key=API_KEY)
 
 # Initialize ChromaDB client
 client = chromadb.Client()
@@ -21,11 +23,11 @@ collection = client.get_or_create_collection(name="book_rag_collection")
 EMBEDDING_MODEL = "models/text-embedding-004"
 GENERATION_MODEL = "models/gemini-1.5-flash"
 
-def get_embedding(text):
+def get_embedding(text: str, task_type: str = "RETRIEVAL_DOCUMENT"):
     """Generates an embedding for the given text."""
     if not text.strip():
         return [] # Return empty list for empty text
-    return genai.embed_content(model=EMBEDDING_MODEL, content=text)["embedding"]
+    return genai.embed_content(model=EMBEDDING_MODEL, content=text, task_type=task_type)["embedding"]
 
 def extract_text_from_pdf(file_path: str) -> str:
     """Extracts text from a PDF file."""
@@ -100,7 +102,7 @@ async def process_book_for_rag(file_path: str, book_id: str):
 
 async def query_rag(query: str, book_id: str):
     """Queries the RAG system for answers based on the book content."""
-    query_embedding = get_embedding(query) # No await here
+    query_embedding = get_embedding(query, task_type="RETRIEVAL_QUERY") # No await here
     if not query_embedding:
         return "I cannot process an empty query."
 

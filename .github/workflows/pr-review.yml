@@ -20,27 +20,20 @@ jobs:
           python-version: '3.x'
 
       - name: Install Python dependencies
-        run: pip install -r backend/requirements.txt
+        run: pip install google-genai --no-cache-dir --force-reinstall
 
       - name: Install GitHub CLI
         run: sudo apt-get install -y gh
-
-      - name: Get PR Diff
-        id: get_diff
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
-          echo "pr_diff<<EOF" >> $GITHUB_OUTPUT
-          echo "$PR_DIFF" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Call Gemini for PR Review
         id: gemini_review
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_DIFF="${{ steps.get_diff.outputs.pr_diff }}"
-          GEMINI_RESPONSE=$(python backend/scripts/review_pr.py "${PR_DIFF}")
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
+          GEMINI_RESPONSE=$(echo "${PR_DIFF}" | python backend/scripts/review_pr.py)
           echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
           JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
@@ -52,12 +45,19 @@ jobs:
           fi
 
           REVIEW_OUTPUT=$(echo "${JSON_OUTPUT}" | jq -r '.review')
-          echo "review_output=${REVIEW_OUTPUT}" >> $GITHUB_OUTPUT
+          REVIEW_FILE=$(mktemp)
+          echo "${REVIEW_OUTPUT}" > "$REVIEW_FILE"
+          echo "review_file=$REVIEW_FILE" >> $GITHUB_OUTPUT
 
       - name: Post PR Review Comment
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          REVIEW_COMMENT="${{ steps.gemini_review.outputs.review_output }}"
-          gh pr comment $PR_NUMBER --body "$REVIEW_COMMENT" --repo ${{ github.repository }}
+          REVIEW_FILE="${{ steps.gemini_review.outputs.review_file }}"
+          gh pr comment $PR_NUMBER --body-file "$REVIEW_FILE" --repo ${{ github.repository }}
+
+      - name: Cleanup temporary files
+        if: always()
+        run: |
+          rm -f "${{ steps.gemini_review.outputs.review_file }}"
