@@ -28,7 +28,7 @@ function Header() {
     fetchBookCount();
 
     // Refetch count periodically (every 1 minute)
-    const intervalId = setInterval(fetchBookCount, 60000);
+    const intervalId = setInterval(fetchBookCount, 600000);
     return () => clearInterval(intervalId);
   }, []);
 
