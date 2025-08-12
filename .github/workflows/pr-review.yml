@@ -31,8 +31,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          # Capture only stdout from the python script, stderr will go to workflow logs
-          GEMINI_RESPONSE=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }} | python backend/scripts/review_pr.py)
+          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
+          echo "PR Diff: ${PR_DIFF}"
+          GEMINI_RESPONSE=$(echo "${PR_DIFF}" | python backend/scripts/review_pr.py)
           echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
 
           JSON_OUTPUT=$(echo "${GEMINI_RESPONSE}" | jq -c .)
