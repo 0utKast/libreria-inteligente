@@ -41,7 +41,7 @@ function Header() {
       <div className="header-logo">
         <h1>📚 Librería Inteligente</h1>
         {bookCount > 0 && (
-          <p key="book-count" className="book-count">{bookCount} libros en la biblioteca</p>
+          <p className="book-count">{bookCount} libros en la biblioteca</p>
         )}
         {errorMessage && (
           <p className="error-message">{errorMessage}</p>
