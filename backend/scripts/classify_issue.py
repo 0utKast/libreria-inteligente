@@ -5,8 +5,17 @@ import traceback
 import google.generativeai as genai
 
 def classify_issue(title: str, body: str):
-    print(f"DEBUG: Initializing Gemini API with key: {os.environ.get("GEMINI_API_KEY")[:5]}...", file=sys.stderr, flush=True)
-    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+    # El nuevo SDK de Google busca la clave en la variable de entorno 'GOOGLE_API_KEY'.
+    # Para mantener la compatibilidad, leeremos 'GEMINI_API_KEY' si 'GOOGLE_API_KEY' no está presente.
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
+    os.environ['GOOGLE_API_KEY'] = api_key
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
+    genai.configure(api_key=api_key)
+    print(f"DEBUG: Initializing Gemini API with key: {api_key[:5]}...", file=sys.stderr, flush=True)
 
     try:
         print("DEBUG: Attempting to list models to verify API key and connectivity...", file=sys.stderr, flush=True)

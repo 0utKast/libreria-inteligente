@@ -21,13 +21,14 @@ import uuid # For generating unique book IDs
 
 # --- Configuración Inicial ---
 load_dotenv(dotenv_path='../.env')
-API_KEY = os.getenv("GEMINI_API_KEY")
-if not API_KEY: raise Exception("No se encontró la GEMINI_API_KEY.")
+API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+if not API_KEY:
+    raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
 genai.configure(api_key=API_KEY)
 models.Base.metadata.create_all(bind=database.engine)
 
 # --- Funciones de IA y Procesamiento ---
-def analyze_with_gemini(text: str) -> dict:
+async def analyze_with_gemini(text: str) -> dict:
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
     prompt = f"""
     Eres un bibliotecario experto. Analiza el siguiente texto extraído de las primeras páginas de un libro.
@@ -38,7 +39,8 @@ def analyze_with_gemini(text: str) -> dict:
     Texto a analizar: --- {text[:4000]} ---
     """
     try:
-        response = model.generate_content(prompt)
+        response = await model.generate_content_async(prompt)
+        print(f"DEBUG: Gemini raw response: {response.text}")
         match = response.text.strip()
         if match.startswith("```json"):
             match = match[7:]
@@ -47,6 +49,8 @@ def analyze_with_gemini(text: str) -> dict:
         return json.loads(match.strip())
     except Exception as e:
         print(f"Error al analizar con Gemini: {e}")
+        if 'response' in locals():
+            print(f"DEBUG: Gemini raw response on error: {response.text}")
         return {"title": "Error de IA", "author": "Error de IA", "category": "Error de IA"}
 
 def process_pdf(file_path: str, static_dir: str) -> dict:
@@ -113,7 +117,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/temp_books", StaticFiles(directory=STATIC_TEMP_DIR), name="temp_books")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -145,7 +149,7 @@ async def upload_book(db: Session = Depends(get_db), book_file: UploadFile = Fil
         os.remove(file_path) # Limpiar el archivo subido si el procesamiento falla
         raise e
 
-    gemini_result = analyze_with_gemini(book_data["text"])
+    gemini_result = await analyze_with_gemini(book_data["text"])
     
     # --- Puerta de Calidad ---
     title = gemini_result.get("title", "Desconocido")

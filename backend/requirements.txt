@@ -3,7 +3,7 @@ uvicorn[standard]
 python-multipart
 ebooklib
 PyMuPDF
-google-generativeai
+google-genai
 python-dotenv
 beautifulsoup4
 sqlalchemy

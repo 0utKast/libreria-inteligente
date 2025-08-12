@@ -5,7 +5,10 @@ import traceback
 import google.generativeai as genai
 
 def review_pull_request(pr_diff: str):
-    genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise Exception("No se encontró la variable de entorno GOOGLE_API_KEY ni GEMINI_API_KEY.")
+    genai.configure(api_key=api_key)
 
     try:
         model = genai.GenerativeModel('gemini-1.5-pro-latest')
