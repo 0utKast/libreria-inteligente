@@ -73,3 +73,21 @@ The application will be available at `http://localhost:3000`.
 *   **Backend:** The backend code follows a standard FastAPI project structure. It uses SQLAlchemy for database interactions and Alembic for database migrations. The main application logic is in `main.py`, with database models, schemas, and CRUD operations separated into their respective files.
 *   **Frontend:** The frontend is a typical React application created with `create-react-app`. It uses React Router for navigation and has separate components for each view.
 *   **API:** The frontend and backend communicate via a RESTful API. The API endpoints are defined in the backend's `main.py` file.
+
+## Future Improvements / Suggestions from Gemini Review
+
+Based on the recent Pull Request review, here are some suggestions for future improvements:
+
+### Backend
+
+*   **Security - CORS Configuration:** The current `allow_origins=["http://localhost:3000"]` in `main.py` is restrictive. For production environments, consider replacing it with the actual frontend origin or using an environment variable for flexibility.
+*   **Error Handling:** Implement more specific error handling in `main.py` for different file types (PDF, EPUB) during processing.
+*   **Testing:** Add unit tests for new functions and API endpoints to ensure code quality and reliability.
+*   **Consistency:** Ensure consistent use of `async/await` throughout the asynchronous code.
+*   **Documentation:** Add comprehensive documentation for new API endpoints.
+
+### Frontend
+
+*   **Performance - Book Count Refetch:** The book count refetch interval in `Header.js` (currently every minute) might be excessive. Consider a longer interval or activating it only when necessary.
+*   **Usability - Error Messages:** Make error messages in `Header.js` more informative for the user.
+*   **Error Handling:** Implement retry mechanisms or better error state handling for the book count fetching logic in `Header.js`.
