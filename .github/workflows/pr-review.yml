@@ -32,7 +32,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-          PR_DIFF=$(gh pr diff $PR_NUMBER --repo ${{ github.repository }})
+          PR_DIFF=$(git diff ${{ github.event.pull_request.base.ref }}...${{ github.event.pull_request.head.ref }})
           echo "PR Diff: ${PR_DIFF}"
           GEMINI_RESPONSE=$(echo "${PR_DIFF}" | python backend/scripts/review_pr.py)
           echo "Raw Gemini Response: ${GEMINI_RESPONSE}"
