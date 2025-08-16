@@ -1,0 +1,37 @@
+name: Generar Documentación del Proyecto
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install -r backend/requirements.txt
+
+      - name: Generar Documentación
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python backend/scripts/generate_docs.py
+
+      - name: Commit y Push de la documentación
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'docs: Actualizar documentación autogenerada del proyecto'
+          file_pattern: 'DOCUMENTACION_PROYECTO.md'
+          commit_user_name: 'Gemini Bot'
+          commit_user_email: 'gemini-bot@example.com'
+          commit_author: 'Gemini Bot <gemini-bot@example.com>'
