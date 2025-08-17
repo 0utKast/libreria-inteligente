@@ -57,5 +57,6 @@ jobs:
             echo "No new test files were generated to commit."
           else
             git commit -m "test: Añadir tests unitarios autogenerados por Gemini"
-            git push
+            # Push the new commit to the PR's branch
+            git push origin HEAD:${{ github.head_ref }}
           fi
