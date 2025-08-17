@@ -1,4 +1,4 @@
-name: Generación Automática de Tests
+name: 'NUEVO - Generador de Tests (ID: 123)'
 
 on:
   pull_request:
