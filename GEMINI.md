@@ -16,6 +16,21 @@ The project is divided into two main parts:
 *   **Frontend:** React, React Router
 *   **Database:** SQLite
 
+## Automated GitHub Actions
+
+This project leverages GitHub Actions and the Google Gemini API to automate various software engineering tasks.
+
+### Automated Unit Test Generation
+
+**Purpose:** Automatically generates basic unit tests for modified Python (`pytest`) and JavaScript (`Jest`) files in a Pull Request.
+**Workflow File:** `.github/workflows/auto-test.yml`
+**Trigger:** `pull_request` to `main` branch.
+**Mechanism:**
+1.  Detects modified `.py` or `.js` files in the PR.
+2.  Sends file content to Gemini API with a prompt to generate unit tests.
+3.  Creates new test files (e.g., `backend/tests/test_*.py`, `frontend/src/*.test.js`).
+4.  Commits these new test files back to the PR branch for review.
+
 ## Building and Running
 
 ### Backend
@@ -91,3 +106,13 @@ Based on the recent Pull Request review, here are some suggestions for future im
 *   **Performance - Book Count Refetch:** The book count refetch interval in `Header.js` (currently every minute) might be excessive. Consider a longer interval or activating it only when necessary.
 *   **Usability - Error Messages:** Make error messages in `Header.js` more informative for the user.
 *   **Error Handling:** Implement retry mechanisms or better error state handling for the book count fetching logic in `Header.js`.
+
+### Automated Unit Test Execution
+
+**Suggestion:** Implement a GitHub Action to automatically run all unit tests (both backend Python tests and frontend JavaScript tests) on every Pull Request.
+**Benefit:** Provides immediate feedback on code quality and prevents merging code that breaks existing tests.
+**Considerations:**
+*   Requires setting up Python and Node.js environments.
+*   Running `pytest` for backend tests.
+*   Running `npm test` for frontend tests.
+*   Reporting test results back to the Pull Request status checks.
