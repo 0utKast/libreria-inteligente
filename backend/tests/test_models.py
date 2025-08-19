@@ -66,5 +66,3 @@ def test_book_file_path_uniqueness():
     book2 = Book(title="Test Book 2", author="Test Author", category="Test Category", file_path="/path/to/file.pdf")
     #This test will likely fail unless you have some mechanism to enforce uniqueness in your model or database.  The below assertion should likely be removed or modified.
     # assert book1.file_path != book2.file_path
-
-```
