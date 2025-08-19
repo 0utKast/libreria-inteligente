@@ -1,75 +1,11 @@
-Compiled with problems:
-×
-ERROR in ./src/CategoriesView.js
-Module build failed (from ./node_modules/babel-loader/lib/index.js):
-SyntaxError: C:\proyectos_python\libreria\frontend\src\CategoriesView.js: 'import' and 'export' may only appear at the top level. (12:6)
+Run git config user.name "Gemini Bot"
+[detached HEAD 5d03069] test: Añadir tests unitarios autogenerados por Gemini
+ 1 file changed, 51 insertions(+)
+ create mode 100644 backend/tests/test_models.py
+fatal: You are not currently on a branch.
+To push the history leading to the current (detached HEAD)
+state now, use
 
-  10 |   useEffect(() => {
-  11 |     const fetchCategories = async () => {
-> 12 |       import API_URL from './config';
-     |       ^
-  13 |
-  14 | // ... (resto del código)
-  15 |
-    at constructor (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:367:19)
-    at FlowParserMixin.raise (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:6627:19)
-    at FlowParserMixin.parseStatementContent (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12871:18)
-    at FlowParserMixin.parseStatementLike (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12767:17)
-    at FlowParserMixin.parseStatementLike (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:2946:24)
-    at FlowParserMixin.parseStatementListItem (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12747:17)
-    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13316:61)
-    at FlowParserMixin.parseBlockBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13309:10)
-    at FlowParserMixin.parseBlock (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13297:10)
-    at FlowParserMixin.parseFunctionBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12101:24)
-    at C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:2920:63
-    at FlowParserMixin.forwardNoArrowParamsConversionAt (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3096:16)
-    at FlowParserMixin.parseFunctionBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:2920:12)
-    at FlowParserMixin.parseArrowExpression (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12076:10)
-    at FlowParserMixin.parseAsyncArrowFromCallExpression (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11259:10)
-    at FlowParserMixin.parseAsyncArrowFromCallExpression (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3517:18)
-    at FlowParserMixin.parseCoverCallAndAsyncArrowHead (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11189:27)
-    at FlowParserMixin.parseSubscript (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11115:19)
-    at FlowParserMixin.parseSubscript (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3680:18)
-    at FlowParserMixin.parseSubscripts (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11089:19)
-    at FlowParserMixin.parseSubscripts (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3646:18)
-    at FlowParserMixin.parseExprSubscripts (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11080:17)
-    at FlowParserMixin.parseUpdate (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11061:21)
-    at FlowParserMixin.parseMaybeUnary (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11041:23)
-    at FlowParserMixin.parseMaybeUnaryOrPrivate (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:10894:61)
-    at FlowParserMixin.parseExprOps (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:10899:23)
-    at FlowParserMixin.parseMaybeConditional (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:10876:23)
-    at FlowParserMixin.parseMaybeAssign (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:10826:21)
-    at FlowParserMixin.parseMaybeAssign (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3579:18)
-    at C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:10795:39
-    at FlowParserMixin.allowInAnd (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12422:16)
-    at FlowParserMixin.parseMaybeAssignAllowIn (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:10795:17)
-    at FlowParserMixin.parseVar (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13384:91)
-    at FlowParserMixin.parseVarStatement (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13230:10)
-    at FlowParserMixin.parseStatementContent (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12851:23)
-    at FlowParserMixin.parseStatementLike (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12767:17)
-    at FlowParserMixin.parseStatementLike (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:2946:24)
-    at FlowParserMixin.parseStatementListItem (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12747:17)
-    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13316:61)
-    at FlowParserMixin.parseBlockBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13309:10)
-    at FlowParserMixin.parseBlock (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:13297:10)
-    at FlowParserMixin.parseFunctionBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12101:24)
-    at C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:2920:63
-    at FlowParserMixin.forwardNoArrowParamsConversionAt (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3096:16)
-    at FlowParserMixin.parseFunctionBody (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:2920:12)
-    at FlowParserMixin.parseArrowExpression (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:12076:10)
-    at FlowParserMixin.parseParenAndDistinguishExpression (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11686:12)
-    at FlowParserMixin.parseParenAndDistinguishExpression (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:3621:18)
-    at FlowParserMixin.parseExprAtom (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:11326:23)
-    at FlowParserMixin.parseExprAtom (C:\proyectos_python\libreria\frontend\node_modules\@babel\parser\lib\index.js:4794:20)
-ERROR
-[eslint] 
-src\CategoriesView.js
-  Line 12:6:  Parsing error: 'import' and 'export' may only appear at the top level. (12:6)
+    git push origin HEAD:<name-of-remote-branch>
 
-src\LibraryView.js
-  Line 70:20:   'API_URL' is not defined  no-undef
-  Line 94:41:   'API_URL' is not defined  no-undef
-  Line 129:46:  'API_URL' is not defined  no-undef
-  Line 140:26:  'API_URL' is not defined  no-undef
-
-Search for the keywords to learn more about each error.
+Error: Process completed with exit code 128.
