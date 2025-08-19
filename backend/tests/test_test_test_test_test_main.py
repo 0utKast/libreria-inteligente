@@ -34,6 +34,7 @@ def mock_db():
     mock_db.commit.return_value = True
     mock_db.add.return_value = None
     mock_db.delete.return_value = None
+    mock_db.rollback.return_value = None
     return mock_db
 
 
@@ -183,12 +184,22 @@ async def test_delete_single_book(mock_db, mock_book):
     mock_db.query.return_value.filter.return_value.first.return_value = mock_book
     await delete_single_book(1, mock_db)
     mock_db.delete.assert_called_once_with(mock_book)
+    mock_db.commit.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_delete_single_book_not_found(mock_db, mock_book):
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+    with pytest.raises(HTTPException) as e:
+        await delete_single_book(1, mock_db)
+    assert e.value.status_code == 404
+
 
 @pytest.mark.asyncio
 async def test_delete_category_and_books(mock_db, mock_book):
     mock_db.query.return_value.filter.return_value.all.return_value = [mock_book]
     await delete_category_and_books("Test Category", mock_db)
     mock_db.delete.assert_called()
+    mock_db.commit.assert_called_once()
 
 @pytest.mark.asyncio
 async def test_download_book(mock_db, mock_book):
@@ -197,6 +208,13 @@ async def test_download_book(mock_db, mock_book):
         with patch('backend.main.os.path.exists', return_value=True):
             file = await download_book(1, mock_db)
             assert file.read() == b"test file"
+
+@pytest.mark.asyncio
+async def test_download_book_not_found(mock_db, mock_book):
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+    with pytest.raises(HTTPException) as e:
+        await download_book(1, mock_db)
+    assert e.value.status_code == 404
 
 @pytest.mark.asyncio
 async def test_convert_epub_to_pdf(mock_db, mock_book):
@@ -230,6 +248,14 @@ async def test_query_rag_endpoint_failure():
         mock_response = MagicMock()
         mock_response.status_code = 500
         mock_post.return_value = mock_response
+        with pytest.raises(HTTPException) as e:
+            await query_rag_endpoint({"text": "test"})
+        assert e.value.status_code == 500
+
+@pytest.mark.asyncio
+async def test_query_rag_endpoint_exception():
+    with patch('backend.main.requests.post') as mock_post:
+        mock_post.side_effect = Exception("Network Error")
         with pytest.raises(HTTPException) as e:
             await query_rag_endpoint({"text": "test"})
         assert e.value.status_code == 500

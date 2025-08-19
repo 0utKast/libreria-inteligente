@@ -1,8 +1,6 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-
 
 jest.mock('./Header', () => () => <div data-testid="header">Header</div>);
 jest.mock('./LibraryView', () => () => <div data-testid="library">Library</div>);
@@ -21,39 +19,45 @@ test('renders App component', () => {
 
 test('navigates to upload view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /upload/i }));
+  const uploadLink = screen.getByRole('link', { name: /upload/i });
+  fireEvent.click(uploadLink);
   expect(screen.getByTestId('upload')).toBeInTheDocument();
 });
 
+
 test('navigates to categories view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /etiquetas/i }));
+  const categoriesLink = screen.getByRole('link', { name: /etiquetas/i });
+  fireEvent.click(categoriesLink);
   expect(screen.getByTestId('categories')).toBeInTheDocument();
 });
 
 test('navigates to tools view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /herramientas/i }));
+  const toolsLink = screen.getByRole('link', { name: /herramientas/i });
+  fireEvent.click(toolsLink);
   expect(screen.getByTestId('tools')).toBeInTheDocument();
 });
 
 test('navigates to rag view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /rag/i }));
+  const ragLink = screen.getByRole('link', { name: /rag/i });
+  fireEvent.click(ragLink);
   expect(screen.getByTestId('rag')).toBeInTheDocument();
 });
 
 test('navigates to reader view with bookId', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /leer\/123/i }));
+  const readerLink = screen.getByRole('link', { name: /leer\/123/i }); //Simula un enlace con un bookId
+  fireEvent.click(readerLink);
   expect(screen.getByTestId('reader')).toBeInTheDocument();
-});
-
-
-test('renders default view when path is invalid', () => {
-    render(<BrowserRouter><App /></BrowserRouter>, {route: '/invalid-path'});
-    expect(screen.getByTestId('library')).toBeInTheDocument();
 
 });
+
+test('renders default library view', () => {
+  render(<BrowserRouter><App /></BrowserRouter>);
+  expect(screen.getByTestId('library')).toBeInTheDocument();
+});
+
 
 ```

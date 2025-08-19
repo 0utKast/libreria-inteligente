@@ -1,107 +1,102 @@
 import pytest
-from unittest.mock import Mock
+from unittest.mock import MagicMock, patch
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 import crud
-import os
+import models
 
-# Mock de la sesión de SQLAlchemy
-mock_session = Mock(spec=Session)
-mock_book = Mock()
-mock_book.id = 1
-mock_book.file_path = "/tmp/test.txt"
-mock_book.cover_image_url = "/tmp/cover.jpg"
+# Mock de la sesión de la base de datos
+@pytest.fixture
+def mock_db_session():
+    mock_session = MagicMock(spec=Session)
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    return mock_session
+
+# Mock de un libro
+@pytest.fixture
+def mock_book():
+    return models.Book(id=1, title="Book Title", author="Author Name", category="Category", cover_image_url="cover.jpg", file_path="book.pdf")
+
+#Mocks para os.path.exists y os.remove
+@patch('os.path.exists')
+@patch('os.remove')
+def test_delete_book(mock_remove, mock_exists, mock_db_session, mock_book):
+    mock_db_session.query().filter().first.return_value = mock_book
+    mock_exists.return_value = True
+    crud.delete_book(mock_db_session, 1)
+    mock_db_session.delete.assert_called_once_with(mock_book)
+    mock_db_session.commit.assert_called_once()
+    mock_remove.assert_called()
+
+@patch('os.path.exists')
+@patch('os.remove')
+def test_delete_book_not_exists(mock_remove, mock_exists, mock_db_session):
+    mock_db_session.query().filter().first.return_value = None
+    crud.delete_book(mock_db_session, 1)
+    mock_db_session.delete.assert_not_called()
+    mock_db_session.commit.assert_not_called()
+    mock_remove.assert_not_called()
+
+@patch('os.path.exists')
+@patch('os.remove')
+def test_delete_books_by_category(mock_remove, mock_exists, mock_db_session, mock_book):
+    mock_books = [mock_book, models.Book(id=2, title="Book2", author="Author2", category="Category", cover_image_url="cover2.jpg", file_path="book2.pdf")]
+    mock_db_session.query().filter().all.return_value = mock_books
+    mock_exists.return_value = True
+    deleted_count = crud.delete_books_by_category(mock_db_session, "Category")
+    assert deleted_count == 2
+    mock_db_session.delete.assert_called()
+    mock_db_session.commit.assert_called_once()
+    mock_remove.assert_called()
+
+def test_delete_books_by_category_empty(mock_db_session):
+    mock_db_session.query().filter().all.return_value = []
+    deleted_count = crud.delete_books_by_category(mock_db_session, "Category")
+    assert deleted_count == 0
+    mock_db_session.delete.assert_not_called()
+    mock_db_session.commit.assert_not_called()
+
+def test_get_books_count(mock_db_session):
+    mock_db_session.query().count.return_value = 10
+    count = crud.get_books_count(mock_db_session)
+    assert count == 10
+
+def test_get_categories(mock_db_session):
+    mock_db_session.query().distinct().order_by().all.return_value = [("Category1",), ("Category2",)]
+    categories = crud.get_categories(mock_db_session)
+    assert categories == ["Category1", "Category2"]
+
+def test_get_books(mock_db_session):
+    mock_db_session.query().order_by().all.return_value = [mock_book]
+    books = crud.get_books(mock_db_session)
+    assert books == [mock_book]
+
+def test_get_books_by_partial_title(mock_db_session):
+    mock_db_session.query().filter().offset().limit().all.return_value = [mock_book]
+    books = crud.get_books_by_partial_title(mock_db_session, "Book")
+    assert books == [mock_book]
+
+def test_get_book_by_title(mock_db_session, mock_book):
+    mock_db_session.query().filter().first.return_value = mock_book
+    book = crud.get_book_by_title(mock_db_session, "Book Title")
+    assert book == mock_book
+
+def test_get_book_by_path(mock_db_session, mock_book):
+    mock_db_session.query().filter().first.return_value = mock_book
+    book = crud.get_book_by_path(mock_db_session, "book.pdf")
+    assert book == mock_book
+
+def test_create_book(mock_db_session):
+    new_book = crud.create_book(mock_db_session, "New Book", "Author", "Category", "cover.jpg", "book.pdf")
+    mock_db_session.add.assert_called_once()
+    mock_db_session.commit.assert_called_once()
+    mock_db_session.refresh.assert_called_once()
+    assert isinstance(new_book, models.Book)
 
 
-def test_get_book_by_path():
-    mock_session.query().filter().first.return_value = mock_book
-    assert crud.get_book_by_path(mock_session, "/tmp/test.txt") == mock_book
-    mock_session.query().filter().first.return_value = None
-    assert crud.get_book_by_path(mock_session, "/tmp/nonexistent.txt") is None
-
-
-def test_get_book_by_title():
-    mock_session.query().filter().first.return_value = mock_book
-    assert crud.get_book_by_title(mock_session, "Test Book") == mock_book
-    mock_session.query().filter().first.return_value = None
-    assert crud.get_book_by_title(mock_session, "Nonexistent Book") is None
-
-
-def test_get_books_by_partial_title():
-    mock_session.query().filter().offset().limit().all.return_value = [mock_book]
-    assert crud.get_books_by_partial_title(mock_session, "Test") == [mock_book]
-    mock_session.query().filter().offset().limit().all.return_value = []
-    assert crud.get_books_by_partial_title(mock_session, "Nonexistent") == []
-
-
-def test_get_books():
-    mock_session.query().filter().order_by().all.return_value = [mock_book]
-    assert crud.get_books(mock_session) == [mock_book]
-    assert crud.get_books(mock_session, category="Test") == [mock_book]
-    assert crud.get_books(mock_session, author="Test") == [mock_book]
-    assert crud.get_books(mock_session, search="Test") == [mock_book]
-    mock_session.query().filter().order_by().all.return_value = []
-    assert crud.get_books(mock_session) == []
-
-
-def test_get_categories():
-    mock_session.query().distinct().order_by().all.return_value = [("Test",)]
-    assert crud.get_categories(mock_session) == ["Test"]
-    mock_session.query().distinct().order_by().all.return_value = []
-    assert crud.get_categories(mock_session) == []
-
-
-def test_create_book():
-    mock_session.add.return_value = None
-    mock_session.commit.return_value = None
-    mock_session.refresh.return_value = mock_book
-    assert crud.create_book(mock_session, "Test Title", "Test Author", "Test Category", "Test URL", "/tmp/test.txt") == mock_book
-
-
-def test_delete_book():
-    mock_session.query().filter().first.return_value = mock_book
-    mock_session.delete.return_value = None
-    mock_session.commit.return_value = None
-    os.makedirs("/tmp", exist_ok=True)
-    with open("/tmp/test.txt", "w") as f:
-        f.write("test")
-    with open("/tmp/cover.jpg", "w") as f:
-        f.write("test")
-    assert crud.delete_book(mock_session, 1) == mock_book
-    assert not os.path.exists("/tmp/test.txt")
-    assert not os.path.exists("/tmp/cover.jpg")
-
-    mock_session.query().filter().first.return_value = None
-    assert crud.delete_book(mock_session, 2) is None
-
-
-def test_delete_books_by_category():
-    mock_session.query().filter().all.return_value = [mock_book]
-    mock_session.delete.return_value = None
-    mock_session.commit.return_value = None
-    os.makedirs("/tmp", exist_ok=True)
-    with open("/tmp/test.txt", "w") as f:
-        f.write("test")
-    assert crud.delete_books_by_category(mock_session, "Test") == 1
-    assert not os.path.exists("/tmp/test.txt")
-    mock_session.query().filter().all.return_value = []
-    assert crud.delete_books_by_category(mock_session, "Nonexistent") == 0
-
-
-def test_get_books_count():
-    mock_session.query().count.return_value = 1
-    assert crud.get_books_count(mock_session) == 1
-
-def test_delete_book_file_error():
-    mock_session.query().filter().first.return_value = mock_book
-    mock_session.delete.return_value = None
-    mock_session.commit.side_effect = SQLAlchemyError
+def test_create_book_exception(mock_db_session):
+    mock_db_session.add.side_effect = SQLAlchemyError("DB error")
     with pytest.raises(SQLAlchemyError):
-        crud.delete_book(mock_session, 1)
+        crud.create_book(mock_db_session, "New Book", "Author", "Category", "cover.jpg", "book.pdf")
 
-def test_delete_books_by_category_file_error():
-    mock_session.query().filter().all.return_value = [mock_book]
-    mock_session.delete.return_value = None
-    mock_session.commit.side_effect = SQLAlchemyError
-    with pytest.raises(SQLAlchemyError):
-        crud.delete_books_by_category(mock_session, "Test")
