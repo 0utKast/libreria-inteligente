@@ -10,6 +10,7 @@ import RagView from './RagView';
 import './App.css';
 
 function App() {
+  // Test comment
   return (
     <BrowserRouter>
       <div className="App">
