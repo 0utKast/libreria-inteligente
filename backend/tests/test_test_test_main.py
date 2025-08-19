@@ -358,3 +358,4 @@ async def test_query_rag_endpoint_empty_book_id(mock_rag):
     with pytest.raises(HTTPException) as e:
         await query_rag_endpoint(query_data=mock_query_data)
     assert e.value.status_code == 400
+```
