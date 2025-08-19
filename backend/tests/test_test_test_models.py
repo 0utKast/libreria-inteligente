@@ -92,4 +92,13 @@ def test_book_file_path_uniqueness(mock_session):
         book2 = Book(title="Test Book 2", author="Test Author", category="Test Category", file_path="/path/to/file.pdf")
     assert "file_path" in str(e.value)
 
+def test_book_creation_with_none_cover_image():
+    book = Book(title="Test Book", author="Test Author", category="Test Category", file_path="/path/to/file.pdf", cover_image_url=None)
+    assert book.cover_image_url is None
+
+def test_book_creation_with_empty_cover_image():
+    book = Book(title="Test Book", author="Test Author", category="Test Category", file_path="/path/to/file.pdf", cover_image_url="")
+    assert book.cover_image_url == ""
+
+
 ```
