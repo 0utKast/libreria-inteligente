@@ -13,3 +13,4 @@ chromadb
 pypdf
 tiktoken
 pytest
+PyPDF2

@@ -19,7 +19,7 @@ jobs:
         id: changed_files
         uses: tj-actions/changed-files@v44
         with:
-          files_ignore_pattern: |
+          files_ignore: |
             **/*.md
             **/*.txt
 
