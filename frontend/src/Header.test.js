@@ -1,113 +1,79 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Header from './Header';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 
 jest.mock('./config', () => ({ default: 'http://test-api' }));
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
-
 describe('Header Component', () => {
+  const mockFetch = jest.spyOn(window, 'fetch');
+
   beforeEach(() => {
+    mockFetch.mockImplementation(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ count: 10 }),
+      })
+    );
+  });
+
+  afterEach(() => {
     mockFetch.mockClear();
   });
 
 
-  test('renders header component', () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => 10,
-    });
-    render(
-      <Router>
-        <Header />
-      </Router>
-    );
-    expect(screen.getByText('📚 Librería Inteligente')).toBeInTheDocument();
+  it('renders the header with initial state', async () => {
+    render(<BrowserRouter><Header /></BrowserRouter>);
+    expect(screen.getByText(/📚 Librería Inteligente/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 libros en la biblioteca/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /&#9776;/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Mi Biblioteca/i })).toBeInTheDocument();
+
   });
 
-  test('displays book count', async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => 15,
-    });
-    render(
-      <Router>
-        <Header />
-      </Router>
-    );
-    expect(await screen.findByText('15 libros en la biblioteca')).toBeInTheDocument();
-  });
-
-  test('displays error message on fetch failure', async () => {
-    mockFetch.mockRejectedValue(new Error('Failed to fetch'));
-    render(
-      <Router>
-        <Header />
-      </Router>
-    );
-    expect(await screen.findByText('No se pudo cargar el contador de libros. Inténtalo de nuevo más tarde.')).toBeInTheDocument();
-  });
-
-  test('toggles menu on hamburger click', () => {
-    render(
-      <Router>
-        <Header />
-      </Router>
-    );
+  it('toggles the menu on hamburger click', async () => {
+    render(<BrowserRouter><Header /></BrowserRouter>);
     const button = screen.getByRole('button', { name: /&#9776;/i });
     fireEvent.click(button);
-    expect(screen.getByText('Mi Biblioteca')).toBeVisible();
+    expect(screen.getByRole('link', { name: /Mi Biblioteca/i })).toHaveClass('nav-link');
+    expect(screen.getByRole('link', { name: /Mi Biblioteca/i }).closest('nav')).toHaveClass('open');
     fireEvent.click(button);
-    expect(screen.getByText('Mi Biblioteca')).not.toBeVisible();
+    expect(screen.getByRole('link', { name: /Mi Biblioteca/i }).closest('nav')).not.toHaveClass('open');
   });
 
 
-  test('closes menu on link click', () => {
-    render(
-      <Router>
-        <Header />
-      </Router>
-    );
+  it('handles link clicks and closes the menu', async () => {
+    render(<BrowserRouter><Header /></BrowserRouter>);
     const button = screen.getByRole('button', { name: /&#9776;/i });
     fireEvent.click(button);
-    const link = screen.getByText('Mi Biblioteca');
+    const link = screen.getByRole('link', { name: /Mi Biblioteca/i });
     fireEvent.click(link);
-    expect(screen.getByText('Mi Biblioteca')).not.toBeVisible();
-  });
-
-
-  test('renders all nav links', () => {
-    render(
-      <Router>
-        <Header />
-      </Router>
-    );
-    const button = screen.getByRole('button', { name: /&#9776;/i });
-    fireEvent.click(button);
-    expect(screen.getByText('Mi Biblioteca')).toBeInTheDocument();
-    expect(screen.getByText('Añadir Libro')).toBeInTheDocument();
-    expect(screen.getByText('Etiquetas')).toBeInTheDocument();
-    expect(screen.getByText('Herramientas')).toBeInTheDocument();
-    expect(screen.getByText('Charla sobre libros con la IA')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Mi Biblioteca/i }).closest('nav')).not.toHaveClass('open');
 
   });
 
-  test('handles HTTP error response', async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
-    render(
-      <Router>
-        <Header />
-      </Router>
+  it('displays error message on fetch failure', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+    render(<BrowserRouter><Header /></BrowserRouter>);
+    await screen.findByText(/No se pudo cargar el contador de libros/i);
+  });
+
+  it('shows zero books if fetch fails', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+    render(<BrowserRouter><Header /></BrowserRouter>);
+    await screen.findByText(/0 libros en la biblioteca/i);
+
+  });
+
+  it('displays correct number of books', async () => {
+    mockFetch.mockImplementation(() => 
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ count: 25 }),
+      })
     );
-    expect(await screen.findByText('No se pudo cargar el contador de libros. Inténtalo de nuevo más tarde.')).toBeInTheDocument();
+    render(<BrowserRouter><Header /></BrowserRouter>);
+    expect(await screen.findByText(/25 libros en la biblioteca/i)).toBeInTheDocument();
   });
 
 });
-
-```

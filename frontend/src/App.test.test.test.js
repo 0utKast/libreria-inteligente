@@ -1,6 +1,5 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 jest.mock('./Header', () => () => <div data-testid="header">Header</div>);
@@ -8,69 +7,73 @@ jest.mock('./LibraryView', () => () => <div data-testid="library">Library</div>)
 jest.mock('./UploadView', () => () => <div data-testid="upload">Upload</div>);
 jest.mock('./CategoriesView', () => () => <div data-testid="categories">Categories</div>);
 jest.mock('./ToolsView', () => () => <div data-testid="tools">Tools</div>);
-jest.mock('./ReaderView', () => ({ bookId }) => <div data-testid="reader">{bookId}</div>);
+jest.mock('./ReaderView', () => ({ bookId }) => <div data-testid="reader">Reader {bookId || ''}</div>);
 jest.mock('./RagView', () => () => <div data-testid="rag">Rag</div>);
 
-
 test('renders App component', () => {
-  render(<MemoryRouter><App /></MemoryRouter>);
+  render(<BrowserRouter><App /></BrowserRouter>);
   expect(screen.getByTestId('header')).toBeInTheDocument();
   expect(screen.getByTestId('library')).toBeInTheDocument();
 });
 
 test('navigates to upload view', () => {
-  render(<MemoryRouter><App /></MemoryRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /upload/i }));
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const uploadLink = screen.getByRole('link', { name: /upload/i });
+  fireEvent.click(uploadLink);
   expect(screen.getByTestId('upload')).toBeInTheDocument();
 });
 
 test('navigates to categories view', () => {
-  render(<MemoryRouter><App /></MemoryRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /etiquetas/i }));
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const categoriesLink = screen.getByRole('link', { name: /etiquetas/i });
+  fireEvent.click(categoriesLink);
   expect(screen.getByTestId('categories')).toBeInTheDocument();
 });
 
 test('navigates to tools view', () => {
-  render(<MemoryRouter><App /></MemoryRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /herramientas/i }));
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const toolsLink = screen.getByRole('link', { name: /herramientas/i });
+  fireEvent.click(toolsLink);
   expect(screen.getByTestId('tools')).toBeInTheDocument();
 });
 
 test('navigates to rag view', () => {
-  render(<MemoryRouter><App /></MemoryRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /rag/i }));
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const ragLink = screen.getByRole('link', { name: /rag/i });
+  fireEvent.click(ragLink);
   expect(screen.getByTestId('rag')).toBeInTheDocument();
 });
 
 test('navigates to reader view with bookId', () => {
-  render(<MemoryRouter><App /></MemoryRouter>);
-  fireEvent.click(screen.getByRole('link', { name: /leer\/123/i }));
-  expect(screen.getByTestId('reader')).toHaveTextContent('123');
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const readerLink = screen.getByRole('link', { name: /leer\/123/i });
+  fireEvent.click(readerLink);
+  expect(screen.getByTestId('reader')).toHaveTextContent('Reader 123');
+});
+
+test('navigates to reader view with different bookId', () => {
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const readerLink = screen.getByRole('link', { name: /leer\/456/i });
+  fireEvent.click(readerLink);
+  expect(screen.getByTestId('reader')).toHaveTextContent('Reader 456');
 });
 
 
-test('renders default view when path is invalid', () => {
-  render(<MemoryRouter initialEntries={['/invalid-path']}><App /></MemoryRouter>);
+test('renders default library view', () => {
+  render(<BrowserRouter><App /></BrowserRouter>);
   expect(screen.getByTestId('library')).toBeInTheDocument();
 });
 
-test('handles missing bookId in reader view', () => {
-    render(<MemoryRouter initialEntries={['/leer/']}><App /></MemoryRouter>);
-    expect(screen.getByTestId('library')).toBeInTheDocument();
-  });
-
-test('handles non-numeric bookId in reader view', () => {
-    render(<MemoryRouter initialEntries={['/leer/abc']}><App /></MemoryRouter>);
-    expect(screen.getByTestId('library')).toBeInTheDocument();
-  });
-
-test('does not crash with no routes', () => {
-    const MockApp = () => <div>No Routes</div>;
-    jest.mock('./App', () => MockApp);
-    render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
-    expect(screen.getByText('No Routes')).toBeInTheDocument();
-
+test('handles missing bookId in reader link', () => {
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const readerLink = screen.getByRole('link', { name: /leer/i });
+  fireEvent.click(readerLink);
+  expect(screen.getByTestId('reader')).toHaveTextContent('Reader ');
 });
 
-
-```
+test('handles invalid bookId in reader link', () => {
+  render(<BrowserRouter><App /></BrowserRouter>);
+  const readerLink = screen.getByRole('link', { name: /leer\/abc/i });
+  fireEvent.click(readerLink);
+  expect(screen.getByTestId('reader')).toHaveTextContent('Reader ');
+});

@@ -137,9 +137,10 @@ async def test_upload_book_success(mock_get_book, mock_copy, mock_create_book, m
     mock_get_book.return_value = None
     mock_create_book.return_value = models.Book(id=1, title="Test Book", author="Test Author", category="Test Category", cover_image_url="/path/to/cover", file_path="/path/to/file")
     with patch('backend.main.process_pdf', return_value={"text": "test", "cover_image_url": "/path/to/cover"}):
-        result = await upload_book(db=mock_db, book_file=mock_file)
-        assert result.title == "Test Book"
-        mock_create_book.assert_called_once()
+        with patch('backend.main.analyze_with_gemini', return_value={"title": "Test Title", "author": "Test Author", "category": "Test Category"}):
+            result = await upload_book(db=mock_db, book_file=mock_file)
+            assert result.title == "Test Book"
+            mock_create_book.assert_called_once()
 
 @pytest.mark.asyncio
 @patch('backend.main.crud.create_book')
@@ -181,6 +182,7 @@ def test_read_books(mock_db, mock_book):
     with patch('backend.main.crud.get_books', mock_crud_get_books):
         books = read_books(db=mock_db)
         assert len(books) == 1
+        assert books[0] == mock_book
 
 def test_get_books_count(mock_db):
     mock_db.query.return_value.count.return_value = 10
@@ -195,6 +197,7 @@ def test_search_books(mock_db, mock_book):
     with patch('backend.main.crud.get_books_by_partial_title', mock_crud_get_books_by_partial_title):
         books = search_books(title="Test", db=mock_db)
         assert len(books) == 1
+        assert books[0] == mock_book
 
 def test_read_categories(mock_db):
     mock_db.query.return_value.distinct.return_value.all.return_value = ["Test Category"]
@@ -247,7 +250,10 @@ def test_download_book_not_found(mock_db):
 @pytest.mark.asyncio
 @patch('backend.main.uuid.uuid4', return_value=MagicMock(hex='test_uuid'))
 async def test_convert_epub_to_pdf_success(mock_uuid4, mock_file_epub):
-    with patch('backend.main.HTML.render', return_value=MagicMock(pages=[], copy=lambda x: MagicMock(write_pdf=MagicMock()))):
+    mock_html_render = MagicMock()
+    mock_html_render.pages = []
+    mock_html_render.copy.return_value.write_pdf = MagicMock()
+    with patch('backend.main.HTML.render', return_value=mock_html_render):
         with patch('backend.main.open', mock_open=MagicMock()):
             response = await convert_epub_to_pdf(file=mock_file_epub)
             assert response["download_url"] == "/temp_books/test_uuid.pdf"
