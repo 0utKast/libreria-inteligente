@@ -1,160 +1,142 @@
 import pytest
-from unittest.mock import MagicMock, patch
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
+from unittest.mock import Mock, patch
 import crud
 import models
+import os
 
-# Mock de la sesión de la base de datos
-@pytest.fixture
-def mock_db_session():
-    mock_session = MagicMock(spec=Session)
-    mock_query = MagicMock()
-    mock_session.query.return_value = mock_query
-    return mock_session
+# Mock para la sesión de SQLAlchemy
+mock_session = Mock()
+mock_book = Mock(spec=models.Book)
+mock_book.file_path = "/tmp/test_file.txt"
+mock_book.cover_image_url = "/tmp/test_cover.jpg"
+mock_book.id = 1
+mock_book.title = "Test Title"
+mock_book.author = "Test Author"
+mock_book.category = "Test Category"
+mock_book.url = "Test URL"
 
-# Mock de un libro
-@pytest.fixture
-def mock_book():
-    return models.Book(id=1, title="Book Title", author="Author Name", category="Category", cover_image_url="cover.jpg", file_path="book.pdf")
+mock_book2 = Mock(spec=models.Book)
+mock_book2.file_path = "/tmp/test_file2.txt"
+mock_book2.cover_image_url = "/tmp/test_cover2.jpg"
+mock_book2.id = 2
+mock_book2.title = "Test Title 2"
+mock_book2.author = "Test Author 2"
+mock_book2.category = "Test Category 2"
+mock_book2.url = "Test URL 2"
 
-#Mocks para os.path.exists y os.remove
-@patch('os.path.exists')
+
+def test_get_book_by_path():
+    mock_session.query().filter().first.side_effect = [mock_book, None, None, Exception("Database error")]
+    assert crud.get_book_by_path(mock_session, "/tmp/test_file.txt") == mock_book
+    assert crud.get_book_by_path(mock_session, "/tmp/test_file2.txt") is None
+    assert crud.get_book_by_path(mock_session, "") is None
+    with pytest.raises(Exception) as e:
+        crud.get_book_by_path(mock_session, "/tmp/test_file.txt")
+    assert str(e.value) == "Database error"
+
+
+def test_get_book_by_title():
+    mock_session.query().filter().first.side_effect = [mock_book, None, None, Exception("Database error")]
+    assert crud.get_book_by_title(mock_session, "Test Title") == mock_book
+    assert crud.get_book_by_title(mock_session, "Test Title 2") is None
+    assert crud.get_book_by_title(mock_session, "") is None
+    with pytest.raises(Exception) as e:
+        crud.get_book_by_title(mock_session, "Test Title")
+    assert str(e.value) == "Database error"
+
+
+def test_get_books_by_partial_title():
+    mock_session.query().filter().offset().limit().all.side_effect = [[mock_book], [], [], Exception("Database error")]
+    assert crud.get_books_by_partial_title(mock_session, "Test") == [mock_book]
+    assert crud.get_books_by_partial_title(mock_session, "NoMatch") == []
+    assert crud.get_books_by_partial_title(mock_session, "") == []
+    with pytest.raises(Exception) as e:
+        crud.get_books_by_partial_title(mock_session, "Test")
+    assert str(e.value) == "Database error"
+
+
+def test_get_books():
+    mock_session.query().order_by().all.side_effect = [[mock_book], [mock_book], [mock_book, mock_book2], Exception("Database error")]
+    assert crud.get_books(mock_session) == [mock_book]
+    assert crud.get_books(mock_session, category="Test") == [mock_book]
+    assert crud.get_books(mock_session, search="Test") == [mock_book]
+    assert crud.get_books(mock_session, author="Test") == [mock_book]
+    assert crud.get_books(mock_session, category="Test Category 2") == [mock_book, mock_book2]
+    assert crud.get_books(mock_session, limit=1, offset=0) == [mock_book]
+    assert crud.get_books(mock_session, limit=1, offset=1) == [mock_book2]
+    with pytest.raises(Exception) as e:
+        crud.get_books(mock_session)
+    assert str(e.value) == "Database error"
+
+
+def test_get_categories():
+    mock_session.query().distinct().order_by().all.side_effect = [[("Test",), ("Test2",)], [], Exception("Database error")]
+    assert crud.get_categories(mock_session) == ["Test", "Test2"]
+    assert crud.get_categories(mock_session) == []
+    with pytest.raises(Exception) as e:
+        crud.get_categories(mock_session)
+    assert str(e.value) == "Database error"
+
+
+
+def test_create_book():
+    mock_session.add.return_value = None
+    mock_session.commit.return_value = None
+    mock_session.refresh.return_value = mock_book
+    mock_session.add.side_effect = [None, Exception("Database error")]
+    assert crud.create_book(mock_session, "Test Title", "Test Author", "Test Category", "Test URL", "/tmp/test.txt") == mock_book
+    with pytest.raises(ValueError):
+        crud.create_book(mock_session, "", "Test Author", "Test Category", "Test URL", "/tmp/test.txt")
+    with pytest.raises(ValueError):
+        crud.create_book(mock_session, "Test Title", "", "Test Category", "Test URL", "/tmp/test.txt")
+    with pytest.raises(ValueError):
+        crud.create_book(mock_session, "Test Title", "Test Author", "", "Test URL", "/tmp/test.txt")
+    with pytest.raises(ValueError):
+        crud.create_book(mock_session, "Test Title", "Test Author", "Test Category", "", "/tmp/test.txt")
+    with pytest.raises(ValueError):
+        crud.create_book(mock_session, "Test Title", "Test Author", "Test Category", "Test URL", "")
+    with pytest.raises(Exception) as e:
+        crud.create_book(mock_session, "Test Title", "Test Author", "Test Category", "Test URL", "/tmp/test.txt")
+    assert str(e.value) == "Database error"
+
+
 @patch('os.remove')
-def test_delete_book(mock_remove, mock_exists, mock_db_session, mock_book):
-    mock_db_session.query().filter().first.return_value = mock_book
-    mock_exists.return_value = True
-    crud.delete_book(mock_db_session, 1)
-    mock_db_session.delete.assert_called_once_with(mock_book)
-    mock_db_session.commit.assert_called_once()
-    mock_remove.assert_called_once_with("book.pdf")
+def test_delete_book(mock_remove):
+    os.makedirs("/tmp", exist_ok=True)
+    open("/tmp/test_file.txt", "w").close()
+    open("/tmp/test_cover.jpg", "w").close()
+    mock_session.query().filter().first.side_effect = [mock_book, None, Exception("Database error")]
+    mock_session.delete.return_value = None
+    mock_session.commit.return_value = None
+    assert crud.delete_book(mock_session, 1) == mock_book
+    mock_remove.assert_called()
+    assert crud.delete_book(mock_session, 2) is None
+    mock_remove.assert_called_once()
+    with pytest.raises(Exception) as e:
+        crud.delete_book(mock_session, 1)
+    assert str(e.value) == "Database error"
 
-@patch('os.path.exists')
+
 @patch('os.remove')
-def test_delete_book_not_exists(mock_remove, mock_exists, mock_db_session):
-    mock_db_session.query().filter().first.return_value = None
-    crud.delete_book(mock_db_session, 1)
-    mock_db_session.delete.assert_not_called()
-    mock_db_session.commit.assert_not_called()
-    mock_remove.assert_not_called()
-
-@patch('os.path.exists')
-@patch('os.remove')
-def test_delete_book_file_not_exists(mock_remove, mock_exists, mock_db_session, mock_book):
-    mock_db_session.query().filter().first.return_value = mock_book
-    mock_exists.return_value = False
-    crud.delete_book(mock_db_session, 1)
-    mock_db_session.delete.assert_called_once_with(mock_book)
-    mock_db_session.commit.assert_called_once()
-    mock_remove.assert_not_called()
-
-@patch('os.path.exists')
-@patch('os.remove')
-def test_delete_books_by_category(mock_remove, mock_exists, mock_db_session, mock_book):
-    mock_books = [mock_book, models.Book(id=2, title="Book2", author="Author2", category="Category", cover_image_url="cover2.jpg", file_path="book2.pdf")]
-    mock_db_session.query().filter().all.return_value = mock_books
-    mock_exists.return_value = True
-    deleted_count = crud.delete_books_by_category(mock_db_session, "Category")
-    assert deleted_count == 2
-    mock_db_session.delete.assert_has_calls([pytest.approx(mock_book), pytest.approx(mock_books[1])])
-    mock_db_session.commit.assert_called_once()
-    mock_remove.assert_has_calls([pytest.approx("book.pdf"), pytest.approx("book2.pdf")])
-
-def test_delete_books_by_category_empty(mock_db_session):
-    mock_db_session.query().filter().all.return_value = []
-    deleted_count = crud.delete_books_by_category(mock_db_session, "Category")
-    assert deleted_count == 0
-    mock_db_session.delete.assert_not_called()
-    mock_db_session.commit.assert_not_called()
-
-def test_get_books_count(mock_db_session):
-    mock_db_session.query().count.return_value = 10
-    count = crud.get_books_count(mock_db_session)
-    assert count == 10
-
-def test_get_categories(mock_db_session):
-    mock_db_session.query().distinct().order_by().all.return_value = [("Category1",), ("Category2",)]
-    categories = crud.get_categories(mock_db_session)
-    assert categories == ["Category1", "Category2"]
-
-def test_get_books(mock_db_session, mock_book):
-    mock_db_session.query().order_by().all.return_value = [mock_book]
-    books = crud.get_books(mock_db_session)
-    assert books == [mock_book]
-
-def test_get_books_empty(mock_db_session):
-    mock_db_session.query().order_by().all.return_value = []
-    books = crud.get_books(mock_db_session)
-    assert books == []
-
-def test_get_books_by_partial_title(mock_db_session, mock_book):
-    mock_db_session.query().filter().offset().limit().all.return_value = [mock_book]
-    books = crud.get_books_by_partial_title(mock_db_session, "Book")
-    assert books == [mock_book]
-
-def test_get_books_by_partial_title_empty(mock_db_session):
-    mock_db_session.query().filter().offset().limit().all.return_value = []
-    books = crud.get_books_by_partial_title(mock_db_session, "Book")
-    assert books == []
-
-def test_get_book_by_title(mock_db_session, mock_book):
-    mock_db_session.query().filter().first.return_value = mock_book
-    book = crud.get_book_by_title(mock_db_session, "Book Title")
-    assert book == mock_book
-
-def test_get_book_by_title_not_found(mock_db_session):
-    mock_db_session.query().filter().first.return_value = None
-    book = crud.get_book_by_title(mock_db_session, "Book Title")
-    assert book is None
-
-def test_get_book_by_path(mock_db_session, mock_book):
-    mock_db_session.query().filter().first.return_value = mock_book
-    book = crud.get_book_by_path(mock_db_session, "book.pdf")
-    assert book == mock_book
-
-def test_get_book_by_path_not_found(mock_db_session):
-    mock_db_session.query().filter().first.return_value = None
-    book = crud.get_book_by_path(mock_db_session, "book.pdf")
-    assert book is None
-
-def test_create_book(mock_db_session):
-    new_book = crud.create_book(mock_db_session, "New Book", "Author", "Category", "cover.jpg", "book.pdf")
-    mock_db_session.add.assert_called_once()
-    mock_db_session.commit.assert_called_once()
-    mock_db_session.refresh.assert_called_once()
-    assert isinstance(new_book, models.Book)
+def test_delete_books_by_category(mock_remove):
+    os.makedirs("/tmp", exist_ok=True)
+    open("/tmp/test_file.txt", "w").close()
+    open("/tmp/test_cover.jpg", "w").close()
+    mock_session.query().filter().all.side_effect = [[mock_book], [], Exception("Database error")]
+    mock_session.delete.return_value = None
+    mock_session.commit.return_value = None
+    assert crud.delete_books_by_category(mock_session, "Test Category") == 1
+    mock_remove.assert_called()
+    assert crud.delete_books_by_category(mock_session, "NoMatch") == 0
+    with pytest.raises(Exception) as e:
+        crud.delete_books_by_category(mock_session, "Test Category")
+    assert str(e.value) == "Database error"
 
 
-def test_create_book_exception(mock_db_session):
-    mock_db_session.add.side_effect = SQLAlchemyError("DB error")
-    with pytest.raises(SQLAlchemyError):
-        crud.create_book(mock_db_session, "New Book", "Author", "Category", "cover.jpg", "book.pdf")
-
-def test_create_book_empty_title(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "", "Author", "Category", "cover.jpg", "book.pdf")
-
-def test_create_book_empty_author(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "Title", "", "Category", "cover.jpg", "book.pdf")
-
-def test_create_book_empty_category(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "Title", "Author", "", "cover.jpg", "book.pdf")
-
-def test_create_book_empty_cover(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "Title", "Author", "Category", "", "book.pdf")
-
-def test_create_book_empty_path(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "Title", "Author", "Category", "cover.jpg", "")
-
-def test_create_book_invalid_cover_url(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "Title", "Author", "Category", "invalid_url", "book.pdf")
-
-
-def test_create_book_invalid_file_path(mock_db_session):
-    with pytest.raises(ValueError):
-        crud.create_book(mock_db_session, "Title", "Author", "Category", "cover.jpg", "invalid/path/book.pdf")
+def test_get_books_count():
+    mock_session.query().count.side_effect = [1, 0, Exception("Database error")]
+    assert crud.get_books_count(mock_session) == 1
+    assert crud.get_books_count(mock_session) == 0
+    with pytest.raises(Exception) as e:
+        crud.get_books_count(mock_session)
+    assert str(e.value) == "Database error"

@@ -1,51 +1,78 @@
 import React from 'react';
-import { render, screen, fireEvent, BrowserRouter } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-import { BrowserRouter as Router } from 'react-router-dom';
 
-
-jest.mock('./Header', () => () => <div>Mocked Header</div>);
-jest.mock('./LibraryView', () => () => <div>Mocked LibraryView</div>);
-jest.mock('./UploadView', () => () => <div>Mocked UploadView</div>);
-jest.mock('./CategoriesView', () => () => <div>Mocked CategoriesView</div>);
-jest.mock('./ToolsView', () => () => <div>Mocked ToolsView</div>);
-jest.mock('./ReaderView', () => () => <div>Mocked ReaderView</div>);
-jest.mock('./RagView', () => () => <div>Mocked RagView</div>);
+jest.mock('./Header', () => () => <div>Header Mock</div>);
+jest.mock('./LibraryView', () => () => <div>LibraryView Mock</div>);
+jest.mock('./UploadView', () => () => <div>UploadView Mock</div>);
+jest.mock('./CategoriesView', () => () => <div>CategoriesView Mock</div>);
+jest.mock('./ToolsView', () => () => <div>ToolsView Mock</div>);
+jest.mock('./ReaderView', () => () => <div>ReaderView Mock</div>);
+jest.mock('./RagView', () => () => <div>RagView Mock</div>);
 
 
 test('renders App component', () => {
-  render(<Router><App /></Router>);
-  expect(screen.getByText('Mocked Header')).toBeInTheDocument();
+  render(<BrowserRouter><App /></BrowserRouter>);
+  expect(screen.getByText('Header Mock')).toBeInTheDocument();
 });
 
 test('renders LibraryView on default route', () => {
-  render(<Router><App /></Router>);
-  expect(screen.getByText('Mocked LibraryView')).toBeInTheDocument();
+  render(<BrowserRouter><App /></BrowserRouter>);
+  expect(screen.getByText('LibraryView Mock')).toBeInTheDocument();
 });
+
 
 test('renders UploadView on /upload route', () => {
-  render(<Router><App /></Router>);
-  //Simulate route change - this might require a more sophisticated solution depending on your router implementation
-  //For this basic example, we will only check if the component is able to render the different routes.  More advanced route testing is beyond the scope of this example.
+  render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>, { route: '/upload' }
+  );
+  expect(screen.getByText('UploadView Mock')).toBeInTheDocument();
 });
 
-
 test('renders CategoriesView on /etiquetas route', () => {
-  render(<Router><App /></Router>);
-  //Simulate route change
+  render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>, { route: '/etiquetas' }
+  );
+  expect(screen.getByText('CategoriesView Mock')).toBeInTheDocument();
 });
 
 test('renders ToolsView on /herramientas route', () => {
-  render(<Router><App /></Router>);
-  //Simulate route change
+  render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>, { route: '/herramientas' }
+  );
+  expect(screen.getByText('ToolsView Mock')).toBeInTheDocument();
 });
 
 test('renders RagView on /rag route', () => {
-  render(<Router><App /></Router>);
-  //Simulate route change
+  render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>, { route: '/rag' }
+  );
+  expect(screen.getByText('RagView Mock')).toBeInTheDocument();
 });
 
-test('renders ReaderView on /leer/:bookId route', () => {
-  render(<Router><App /></Router>);
-  //Simulate route change - this requires mocking the Router more effectively or using a different testing strategy.
+test('renders ReaderView with bookId', () => {
+  render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>, { route: '/leer/123' }
+  );
+  expect(screen.getByText('ReaderView Mock')).toBeInTheDocument();
+});
+
+test('renders 404 for invalid route', () => {
+  render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>, { route: '/invalid-route' }
+  );
+  expect(screen.queryByText('LibraryView Mock')).not.toBeInTheDocument(); // Example, adapt to your 404 handling.  
 });

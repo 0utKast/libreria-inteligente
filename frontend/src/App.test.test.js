@@ -1,89 +1,67 @@
 import React from 'react';
-import { render, screen, fireEvent, Router, Route } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import App from './App';
-import { MemoryRouter } from 'react-router-dom';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
 
-
-jest.mock('./Header', () => () => <div>Mocked Header</div>);
-jest.mock('./LibraryView', () => () => <div>Mocked LibraryView</div>);
-jest.mock('./UploadView', () => () => <div>Mocked UploadView</div>);
-jest.mock('./CategoriesView', () => () => <div>Mocked CategoriesView</div>);
-jest.mock('./ToolsView', () => () => <div>Mocked ToolsView</div>);
-jest.mock('./ReaderView', () => ({ bookId }) => <div>Mocked ReaderView: {bookId}</div>);
-jest.mock('./RagView', () => () => <div>Mocked RagView</div>);
-
-const server = setupServer(
-  //rest handlers if needed for API calls
-)
-
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
-
+jest.mock('./Header', () => () => <div>Header Mock</div>);
+jest.mock('./LibraryView', () => () => <div>LibraryView Mock</div>);
+jest.mock('./UploadView', () => () => <div>UploadView Mock</div>);
+jest.mock('./CategoriesView', () => () => <div>CategoriesView Mock</div>);
+jest.mock('./ToolsView', () => () => <div>ToolsView Mock</div>);
+jest.mock('./ReaderView', () => () => <div>ReaderView Mock</div>);
+jest.mock('./RagView', () => () => <div>RagView Mock</div>);
 
 test('renders App component', () => {
   render(<MemoryRouter><App /></MemoryRouter>);
-  expect(screen.getByText('Mocked Header')).toBeInTheDocument();
+  expect(screen.getByText('Header Mock')).toBeInTheDocument();
 });
 
 test('renders LibraryView on default route', () => {
   render(<MemoryRouter><App /></MemoryRouter>);
-  expect(screen.getByText('Mocked LibraryView')).toBeInTheDocument();
+  expect(screen.getByText('LibraryView Mock')).toBeInTheDocument();
 });
 
 test('renders UploadView on /upload route', () => {
-  render(
-    <MemoryRouter initialEntries={['/upload']}>
-      <App />
-    </MemoryRouter>
-  );
-  expect(screen.getByText('Mocked UploadView')).toBeInTheDocument();
+  render(<MemoryRouter initialEntries={['/upload']}><App /></MemoryRouter>);
+  expect(screen.getByText('UploadView Mock')).toBeInTheDocument();
 });
 
 test('renders CategoriesView on /etiquetas route', () => {
-  render(
-    <MemoryRouter initialEntries={['/etiquetas']}>
-      <App />
-    </MemoryRouter>
-  );
-  expect(screen.getByText('Mocked CategoriesView')).toBeInTheDocument();
+  render(<MemoryRouter initialEntries={['/etiquetas']}><App /></MemoryRouter>);
+  expect(screen.getByText('CategoriesView Mock')).toBeInTheDocument();
 });
 
 test('renders ToolsView on /herramientas route', () => {
-  render(
-    <MemoryRouter initialEntries={['/herramientas']}>
-      <App />
-    </MemoryRouter>
-  );
-  expect(screen.getByText('Mocked ToolsView')).toBeInTheDocument();
+  render(<MemoryRouter initialEntries={['/herramientas']}><App /></MemoryRouter>);
+  expect(screen.getByText('ToolsView Mock')).toBeInTheDocument();
 });
 
 test('renders RagView on /rag route', () => {
-  render(
-    <MemoryRouter initialEntries={['/rag']}>
-      <App />
-    </MemoryRouter>
-  );
-  expect(screen.getByText('Mocked RagView')).toBeInTheDocument();
+  render(<MemoryRouter initialEntries={['/rag']}><App /></MemoryRouter>);
+  expect(screen.getByText('RagView Mock')).toBeInTheDocument();
 });
 
-test('renders ReaderView on /leer/:bookId route', () => {
-  render(
-    <MemoryRouter initialEntries={['/leer/123']}>
-      <App />
-    </MemoryRouter>
-  );
-  expect(screen.getByText('Mocked ReaderView: 123')).toBeInTheDocument();
+test('renders ReaderView with bookId', () => {
+  render(<MemoryRouter initialEntries={['/leer/123']}><App /></MemoryRouter>);
+  expect(screen.getByText('ReaderView Mock')).toBeInTheDocument();
 });
 
-test('handles empty bookId in ReaderView', () => {
-    render(
-      <MemoryRouter initialEntries={['/leer/']}>
-        <App />
-      </MemoryRouter>
-    );
-    // Expect appropriate handling of missing or invalid bookId.  This might involve error messages, redirects or fallback UI.  More specific expectation needed depending on App implementation.
-    //Example: expect(screen.getByText('Error: Book ID is required')).toBeInTheDocument();
-  });
+test('renders 404 for invalid route', () => {
+  render(<MemoryRouter initialEntries={['/invalid-route']}><App /></MemoryRouter>);
+  expect(screen.queryByText('LibraryView Mock')).not.toBeInTheDocument();
+});
+
+test('App handles empty routes gracefully', () => {
+  render(<MemoryRouter initialEntries={['']}><App /></MemoryRouter>);
+  expect(screen.getByText('LibraryView Mock')).toBeInTheDocument();
+});
+
+test('App handles null routes gracefully', () => {
+  render(<MemoryRouter initialEntries={[null]}><App /></MemoryRouter>);
+  expect(screen.getByText('LibraryView Mock')).toBeInTheDocument();
+});
+
+test('App handles undefined routes gracefully', () => {
+  render(<MemoryRouter initialEntries={[undefined]}><App /></MemoryRouter>);
+  expect(screen.getByText('LibraryView Mock')).toBeInTheDocument();
+});
