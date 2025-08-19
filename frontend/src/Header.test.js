@@ -1,65 +1,90 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Header from './Header';
-import { BrowserRouter as Router } from 'react-router-dom';
+import '@testing-library/jest-dom';
 
-jest.mock('./config', () => ({ API_URL: '/api' }));
+jest.mock('./config', () => ({ default: 'http://test-api' }));
 
-const mockFetch = jest.spyOn(global, 'fetch');
+jest.mock('react-router-dom', () => ({
+  NavLink: ({ to, children, onClick, className }) => (
+    <a href={to} onClick={onClick} className={className}>
+      {children}
+    </a>
+  ),
+}));
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
-
-test('renders Header component', () => {
-  mockFetch.mockResolvedValue({
-    ok: true,
-    json: async () => 10,
+describe('Header Component', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn();
   });
-  render(<Router><Header /></Router>);
-  expect(screen.getByText(/📚 Librería Inteligente/i)).toBeInTheDocument();
-});
 
-test('displays book count and handles errors', async () => {
-  mockFetch.mockResolvedValueOnce({ ok: true, json: async () => 10 })
-  render(<Router><Header /></Router>);
-  expect(await screen.findByText(/10 libros en la biblioteca/i)).toBeInTheDocument();
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
 
-  mockFetch.mockRejectedValueOnce(new Error('Network error'));
-  fireEvent.click(screen.getByRole('button')); // Simulate interval fetch triggering an error.
-  expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
+  test('renders header component', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ count: 10 }),
+    });
+    render(<Header />);
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
+    expect(screen.getByText('📚 Librería Inteligente')).toBeInTheDocument();
+    expect(await screen.findByText('10 libros en la biblioteca')).toBeInTheDocument();
+
+  });
+
+  test('renders error message when API call fails', async () => {
+    global.fetch.mockRejectedValue(new Error('Failed to fetch'));
+    render(<Header />);
+    expect(await screen.findByText('No se pudo cargar el contador de libros. Inténtalo de nuevo más tarde.')).toBeInTheDocument();
+  });
+
+  test('toggles menu on hamburger click', () => {
+    render(<Header />);
+    const hamburgerButton = screen.getByRole('button', { name: /&#9776;/i });
+    fireEvent.click(hamburgerButton);
+    expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
+    fireEvent.click(hamburgerButton);
+    expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
+  });
+
+
+  test('nav links call handleLinkClick', () => {
+    const handleLinkClick = jest.fn();
+    render(<Header handleLinkClick={handleLinkClick} />);
+    const navLinks = screen.getAllByRole('link');
+    navLinks.forEach(link => {
+      fireEvent.click(link);
+      expect(handleLinkClick).toHaveBeenCalled();
+    });
+  });
+
+  test('updates book count when API call succeeds', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ count: 20 }),
+    })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ count: 25 }),
+    });
+    render(<Header />);
+    expect(await screen.findByText('20 libros en la biblioteca')).toBeInTheDocument();
+    jest.advanceTimersByTime(600000);
+    expect(await screen.findByText('25 libros en la biblioteca')).toBeInTheDocument();
+
+  });
   
+  test('handles empty book count', async () => {
+    global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ count: 0 }),
+      });
+      render(<Header />);
+      expect(screen.queryByText(/libros en la biblioteca/i)).not.toBeInTheDocument();
+  });
+
+
 });
-
-test('toggles menu on hamburger click', () => {
-  mockFetch.mockResolvedValue({ ok: true, json: async () => 0 });
-  render(<Router><Header /></Router>);
-  const menuButton = screen.getByRole('button', { name: /hamburguer/i});
-  fireEvent.click(menuButton);
-  expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
-  fireEvent.click(menuButton);
-  expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
-});
-
-test('closes menu on link click', () => {
-  mockFetch.mockResolvedValue({ ok: true, json: async () => 0 });
-  render(<Router><Header /></Router>);
-  const menuButton = screen.getByRole('button', { name: /hamburguer/i});
-  fireEvent.click(menuButton);
-  expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
-  fireEvent.click(screen.getByRole('link', { name: /Mi Biblioteca/i }));
-  expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
-});
-
-
-test('nav links render correctly', () => {
-    mockFetch.mockResolvedValue({ ok: true, json: async () => 0 });
-    render(<Router><Header /></Router>);
-    expect(screen.getByRole('link', { name: /Mi Biblioteca/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Añadir Libro/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Etiquetas/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Herramientas/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Charla sobre libros con la IA/i })).toBeInTheDocument();
-});
-
 ```

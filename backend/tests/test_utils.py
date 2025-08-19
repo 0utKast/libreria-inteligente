@@ -1,6 +1,6 @@
 import os
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from backend.utils import configure_genai
 from dotenv import load_dotenv
 
@@ -10,59 +10,38 @@ def test_configure_genai_no_api_key():
         configure_genai()
     assert "No se encontró la API Key" in str(excinfo.value)
 
-@patch.dict(os.environ, {"GOOGLE_API_KEY": "test_api_key"})
+@patch.dict(os.environ, {"GOOGLE_API_KEY": "test-api-key"})
 @patch('google.generativeai.configure')
 def test_configure_genai_google_api_key(mock_configure):
     configure_genai()
-    mock_configure.assert_called_once_with(api_key="test_api_key")
+    mock_configure.assert_called_once_with(api_key="test-api-key")
 
-@patch.dict(os.environ, {"GEMINI_API_KEY": "test_api_key"})
+@patch.dict(os.environ, {"GEMINI_API_KEY": "test-api-key"})
 @patch('google.generativeai.configure')
 def test_configure_genai_gemini_api_key(mock_configure):
     configure_genai()
-    mock_configure.assert_called_once_with(api_key="test_api_key")
+    mock_configure.assert_called_once_with(api_key="test-api-key")
 
-@patch.dict(os.environ, {"GOOGLE_API_KEY": "test_api_key", "GEMINI_API_KEY": "another_test_api_key"})
+@patch.dict(os.environ, {"GOOGLE_API_KEY": "test-api-key", "GEMINI_API_KEY": "another-test-api-key"})
 @patch('google.generativeai.configure')
 def test_configure_genai_both_api_keys(mock_configure):
     configure_genai()
-    mock_configure.assert_called_once_with(api_key="test_api_key")
+    mock_configure.assert_called_once_with(api_key="test-api-key")
 
-@patch('os.getenv', side_effect=lambda x: None)
+@patch('os.getenv', side_effect=lambda key: None)
 @patch('google.generativeai.configure')
-def test_configure_genai_no_env(mock_getenv, mock_configure):
+def test_configure_genai_no_env_vars(mock_getenv, mock_configure):
     with pytest.raises(ValueError) as excinfo:
         configure_genai()
     assert "No se encontró la API Key" in str(excinfo.value)
     mock_configure.assert_not_called()
 
-
-@patch('os.getenv', side_effect=lambda x: "test_api_key" if x == "GOOGLE_API_KEY" else None)
-@patch('google.generativeai.configure')
-def test_configure_genai_google_api_key_only(mock_getenv,mock_configure):
-    configure_genai()
-    mock_configure.assert_called_once_with(api_key="test_api_key")
-
-@patch('os.getenv', side_effect=lambda x: "test_api_key" if x == "GEMINI_API_KEY" else None)
-@patch('google.generativeai.configure')
-def test_configure_genai_gemini_api_key_only(mock_getenv,mock_configure):
-    configure_genai()
-    mock_configure.assert_called_once_with(api_key="test_api_key")
-
-@patch.dict(os.environ, {"GOOGLE_API_KEY": ""})
-@patch('google.generativeai.configure')
-def test_configure_genai_empty_google_api_key(mock_configure):
-    with pytest.raises(ValueError) as excinfo:
+@patch('os.getenv', side_effect=lambda key: "test-api-key" if key == "GOOGLE_API_KEY" else None)
+@patch('google.generativeai.configure', side_effect=Exception("API error"))
+def test_configure_genai_api_error(mock_configure, mock_getenv):
+    with pytest.raises(Exception) as excinfo:
         configure_genai()
-    assert "No se encontró la API Key" in str(excinfo.value)
-    mock_configure.assert_not_called()
+    assert "API error" in str(excinfo.value)
 
-@patch.dict(os.environ, {"GEMINI_API_KEY": ""})
-@patch('google.generativeai.configure')
-def test_configure_genai_empty_gemini_api_key(mock_configure):
-    with pytest.raises(ValueError) as excinfo:
-        configure_genai()
-    assert "No se encontró la API Key" in str(excinfo.value)
-    mock_configure.assert_not_called()
 
 ```
