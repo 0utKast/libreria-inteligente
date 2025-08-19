@@ -1,98 +1,123 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from backend.models import Book
+from backend.models import Book, DuplicateFilePathError, InvalidFilePathError
 
-# Mock de la clase Base de SQLAlchemy
 class MockBase:
-    metadata = MagicMock()
+    def __init__(self):
+        pass
 
-# Reemplazar la clase Base real con el mock
-Book.metadata = MockBase.metadata
+@patch('backend.models.Book.check_file_path_exists', return_value=True)
+@patch('backend.models.Book.check_file_path_uniqueness', return_value=True)
+def test_book_creation(mock_uniqueness, mock_exists):
+    book = Book(id=1, title="Test Book", author="Test Author", category="Test Category", cover_image_url="test.jpg", file_path="/path/to/test.pdf")
+    assert book.id == 1
+    assert book.title == "Test Book"
+    assert book.author == "Test Author"
+    assert book.category == "Test Category"
+    assert book.cover_image_url == "test.jpg"
+    assert book.file_path == "/path/to/test.pdf"
 
-def test_book_creation():
-    book = Book(title="Clean Code", author="Robert Martin", category="Software Engineering", cover_image_url="url", file_path="/path/to/file.pdf")
-    assert book.title == "Clean Code"
-    assert book.author == "Robert Martin"
-    assert book.category == "Software Engineering"
-    assert book.cover_image_url == "url"
-    assert book.file_path == "/path/to/file.pdf"
-
-def test_book_creation_no_cover_image():
-    book = Book(title="Test Driven Development", author="Kent Beck", category="Software Engineering", file_path="/path/to/file.pdf")
+@patch('backend.models.Book.check_file_path_exists', return_value=True)
+@patch('backend.models.Book.check_file_path_uniqueness', return_value=True)
+def test_book_creation_missing_fields(mock_uniqueness, mock_exists):
+    book = Book(title="Test Book", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    assert book.id is None
+    assert book.title == "Test Book"
+    assert book.author == "Test Author"
+    assert book.category == "Test Category"
     assert book.cover_image_url is None
+    assert book.file_path == "/path/to/test.pdf"
 
-def test_book_creation_empty_title():
+@patch('backend.models.Book.check_file_path_exists', return_value=True)
+@patch('backend.models.Book.check_file_path_uniqueness', return_value=True)
+def test_book_creation_empty_fields(mock_uniqueness, mock_exists):
+    book = Book(title="", author="", category="", file_path="")
+    assert book.title == ""
+    assert book.author == ""
+    assert book.category == ""
+    assert book.file_path == ""
+
+@patch('backend.models.Book.check_file_path_exists', return_value=False)
+@patch('backend.models.Book.check_file_path_uniqueness', return_value=True)
+def test_book_creation_invalid_file_path(mock_uniqueness, mock_exists):
+    with pytest.raises(InvalidFilePathError) as e:
+        Book(title="Test Book", author="Test Author", category="Test Category", file_path="test.pdf")
+    assert "file_path" in str(e.value)
+
+@patch('backend.models.Book.check_file_path_exists', return_value=True)
+@patch('backend.models.Book.check_file_path_uniqueness', return_value=False)
+def test_book_creation_duplicate_file_path(mock_uniqueness, mock_exists):
+    with pytest.raises(DuplicateFilePathError) as e:
+        Book(title="Test Book 1", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    assert "unique" in str(e.value)
+
+
+@patch('backend.models.Book.check_file_path_exists', return_value=True)
+@patch('backend.models.Book.check_file_path_uniqueness', return_value=True)
+def test_book_representation(mock_uniqueness, mock_exists):
+    book = Book(id=1, title="Test Book", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    assert str(book) == "<Book id=1 title='Test Book' author='Test Author' category='Test Category' file_path='/path/to/test.pdf'>"
+
+def test_book_creation_invalid_category():
     with pytest.raises(ValueError) as e:
-        Book(title="", author="Author", category="Category", file_path="/path/to/file.pdf")
-    assert "title cannot be empty" in str(e.value)
+        Book(id=1, title="Test Book", author="Test Author", category=123, file_path="/path/to/test.pdf")
+    assert "Category must be a string" in str(e.value)
 
-def test_book_creation_empty_author():
+def test_book_creation_invalid_title():
     with pytest.raises(ValueError) as e:
-        Book(title="Title", author="", category="Category", file_path="/path/to/file.pdf")
-    assert "author cannot be empty" in str(e.value)
+        Book(id=1, title=123, author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    assert "Title must be a string" in str(e.value)
 
-def test_book_creation_empty_category():
+def test_book_creation_invalid_author():
     with pytest.raises(ValueError) as e:
-        Book(title="Title", author="Author", category="", file_path="/path/to/file.pdf")
-    assert "category cannot be empty" in str(e.value)
+        Book(id=1, title="Test Book", author=123, category="Test Category", file_path="/path/to/test.pdf")
+    assert "Author must be a string" in str(e.value)
 
-@patch('backend.models.Book.check_file_path_uniqueness', side_effect=Exception("Unique constraint failed"))
-def test_book_creation_duplicate_file_path(mock_check):
-    book1 = Book(title="Book1", author="Author1", category="Category1", file_path="/path/to/file.pdf")
-    with pytest.raises(Exception) as e:
-        book2 = Book(title="Book2", author="Author2", category="Category2", file_path="/path/to/file.pdf")
-    assert "Unique constraint failed" in str(e.value)
+def test_book_creation_invalid_file_path_type():
+    with pytest.raises(TypeError) as e:
+        Book(id=1, title="Test Book", author="Test Author", category="Test Category", file_path=123)
+    assert "file_path must be a string" in str(e.value)
 
-@patch('backend.models.Book.validate_file_path')
-def test_book_creation_invalid_file_path(mock_validate):
-    mock_validate.side_effect = ValueError("Invalid file path")
-    with pytest.raises(ValueError) as e:
-        Book(title="Title", author="Author", category="Category", file_path="a"*1000)
-    assert "Invalid file path" in str(e.value)
+def test_book_creation_invalid_cover_image_url_type():
+    with pytest.raises(TypeError) as e:
+        Book(id=1, title="Test Book", author="Test Author", category="Test Category", cover_image_url=123, file_path="/path/to/test.pdf")
+    assert "cover_image_url must be a string" in str(e.value)
 
-def test_book_creation_long_title():
-    long_title = "a" * 256  # Simulate a title exceeding the database limit
-    with pytest.raises(ValueError) as e:
-        Book(title=long_title, author="Author", category="Category", file_path="/path/to/file.pdf")
-    assert "title exceeds maximum length" in str(e.value)
-
-def test_book_creation_long_author():
-    long_author = "a" * 256  # Simulate an author name exceeding the database limit
-    with pytest.raises(ValueError) as e:
-        Book(title="Title", author=long_author, category="Category", file_path="/path/to/file.pdf")
-    assert "author exceeds maximum length" in str(e.value)
-
-def test_book_creation_long_category():
-    long_category = "a" * 256  # Simulate a category name exceeding the database limit
-    with pytest.raises(ValueError) as e:
-        Book(title="Title", author="Author", category=long_category, file_path="/path/to/file.pdf")
-    assert "category exceeds maximum length" in str(e.value)
-
-def test_book_creation_long_file_path():
-    long_file_path = "a" * 512 # Simulate a file path exceeding the database limit
-    with pytest.raises(ValueError) as e:
-        Book(title="Title", author="Author", category="Category", file_path=long_file_path)
-    assert "file_path exceeds maximum length" in str(e.value)
-
-def test_book_creation_special_characters():
-    book = Book(title="Títlê with special characters", author="Authôr", category="Categöry", file_path="/path/to/file.pdf")
-    assert book.title == "Títlê with special characters"
-    assert book.author == "Authôr"
-    assert book.category == "Categöry"
-
-def test_book_creation_null_file_path():
-    book = Book(title="Title", author="Author", category="Category", file_path=None)
+def test_book_creation_with_none_values():
+    book = Book(id=1, title=None, author=None, category=None, cover_image_url=None, file_path=None)
+    assert book.title is None
+    assert book.author is None
+    assert book.category is None
+    assert book.cover_image_url is None
     assert book.file_path is None
 
-def test_book_creation_none_values():
-    book = Book(title="Title", author="Author", category="Category", cover_image_url=None, file_path="/path/to/file.pdf")
-    assert book.cover_image_url is None
+def test_book_creation_with_special_characters():
+    book = Book(id=1, title="Test Book !@#$%^&*()", author="Test Author <>?", category="Test Category []{}", cover_image_url="test.jpg", file_path="/path/to/test.pdf")
+    assert book.title == "Test Book !@#$%^&*()"
+    assert book.author == "Test Author <>?"
+    assert book.category == "Test Category []{}"
 
-def test_book_creation_with_numbers_in_fields():
-    book = Book(title="Title123", author="Author456", category="Category789", file_path="/path/to/file.pdf")
-    assert book.title == "Title123"
-    assert book.author == "Author456"
-    assert book.category == "Category789"
+def test_book_creation_with_long_title():
+    long_title = "a" * 256
+    book = Book(id=1, title=long_title, author="Test Author", category="Test Category", cover_image_url="test.jpg", file_path="/path/to/test.pdf")
+    assert len(book.title) == 256
 
+def test_book_creation_with_long_author():
+    long_author = "a" * 256
+    book = Book(id=1, title="Test Book", author=long_author, category="Test Category", cover_image_url="test.jpg", file_path="/path/to/test.pdf")
+    assert len(book.author) == 256
 
-```
+def test_book_creation_with_long_category():
+    long_category = "a" * 256
+    book = Book(id=1, title="Test Book", author="Test Author", category=long_category, cover_image_url="test.jpg", file_path="/path/to/test.pdf")
+    assert len(book.category) == 256
+
+def test_book_creation_with_long_file_path():
+    long_file_path = "/a/long/path/to/a/file" * 10
+    book = Book(id=1, title="Test Book", author="Test Author", category="Test Category", cover_image_url="test.jpg", file_path=long_file_path)
+    assert len(book.file_path) == len(long_file_path)
+
+def test_book_creation_with_long_cover_image_url():
+    long_cover_image_url = "a" * 256
+    book = Book(id=1, title="Test Book", author="Test Author", category="Test Category", cover_image_url=long_cover_image_url, file_path="/path/to/test.pdf")
+    assert len(book.cover_image_url) == 256

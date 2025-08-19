@@ -8,7 +8,7 @@ jest.mock('./LibraryView', () => () => <div data-testid="library">Library</div>)
 jest.mock('./UploadView', () => () => <div data-testid="upload">Upload</div>);
 jest.mock('./CategoriesView', () => () => <div data-testid="categories">Categories</div>);
 jest.mock('./ToolsView', () => () => <div data-testid="tools">Tools</div>);
-jest.mock('./ReaderView', () => ({ bookId }) => <div data-testid="reader">{bookId}</div>);
+jest.mock('./ReaderView', ({ bookId }) => <div data-testid="reader">{bookId}</div>);
 jest.mock('./RagView', () => () => <div data-testid="rag">Rag</div>);
 
 
@@ -69,8 +69,26 @@ test('does not crash with no routes', () => {
     jest.mock('./App', () => MockApp);
     render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>);
     expect(screen.getByText('No Routes')).toBeInTheDocument();
-
 });
 
+test('renders header', () => {
+    render(<MemoryRouter><App /></MemoryRouter>);
+    expect(screen.getByTestId('header')).toBeInTheDocument();
+});
+
+test('LibraryView renders by default', () => {
+    render(<MemoryRouter><App /></MemoryRouter>);
+    expect(screen.getByTestId('library')).toBeInTheDocument();
+});
+
+test('App handles unexpected routes gracefully', () => {
+  render(<MemoryRouter initialEntries={['/unexpected-route']}><App /></MemoryRouter>);
+  expect(screen.getByTestId('library')).toBeInTheDocument(); // or handle it appropriately
+});
+
+test('App handles no initialEntries gracefully', () => {
+  render(<MemoryRouter initialEntries={[]}> <App /> </MemoryRouter>);
+  expect(screen.getByTestId('library')).toBeInTheDocument(); //or handle it appropriately
+});
 
 ```

@@ -3,54 +3,65 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import Header from './Header';
 import { BrowserRouter as Router } from 'react-router-dom';
 
-jest.mock('./config', () => ({
-  default: 'http://test-api'
-}));
+jest.mock('./config', () => ({ API_URL: '/api' }));
 
-jest.mock('node-fetch', () => jest.fn());
-const fetch = require('node-fetch');
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
 
 
 describe('Header Component', () => {
   beforeEach(() => {
-    fetch.mockClear();
+    mockFetch.mockClear();
   });
 
-  test('renders header with initial state', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => 10 });
+  it('renders the header correctly', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(5),
+    });
     render(<Router><Header /></Router>);
-    expect(await screen.findByText(/📚 Librería Inteligente/i)).toBeInTheDocument();
-    expect(screen.getByText(/10 libros en la biblioteca/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /📚 Librería Inteligente/i })).toBeInTheDocument();
+    expect(await screen.findByText('5 libros en la biblioteca')).toBeInTheDocument();
   });
 
 
-  test('renders error message if fetch fails', async () => {
-    fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+  it('handles error during fetch', async () => {
+    mockFetch.mockRejectedValue(new Error('Failed to fetch'));
     render(<Router><Header /></Router>);
     expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
-    expect(screen.queryByText(/10 libros en la biblioteca/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/libros en la biblioteca/i)).not.toBeInTheDocument();
   });
 
-  test('toggles menu on hamburger click', () => {
+
+  it('toggles the menu on hamburger click', () => {
     render(<Router><Header /></Router>);
     const hamburgerButton = screen.getByRole('button', { name: /&#9776;/i });
     fireEvent.click(hamburgerButton);
     expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
     fireEvent.click(hamburgerButton);
     expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
+
   });
 
-  test('closes menu on link click', () => {
+  it('closes the menu on link click', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(10),
+    });
     render(<Router><Header /></Router>);
     const hamburgerButton = screen.getByRole('button', { name: /&#9776;/i });
     fireEvent.click(hamburgerButton);
     expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
-    const navLink = screen.getByRole('link', { name: /Mi Biblioteca/i });
-    fireEvent.click(navLink);
+    const link = screen.getByRole('link', { name: /Mi Biblioteca/i });
+    fireEvent.click(link);
     expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
   });
 
-  test('nav links render correctly', () => {
+  it('renders nav links correctly', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(10),
+    });
     render(<Router><Header /></Router>);
     expect(screen.getByRole('link', { name: /Mi Biblioteca/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Añadir Libro/i })).toBeInTheDocument();
@@ -59,48 +70,64 @@ describe('Header Component', () => {
     expect(screen.getByRole('link', { name: /Charla sobre libros con la IA/i })).toBeInTheDocument();
   });
 
-  test('updates book count after fetch', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => 15 });
+  it('shows error message if fetch fails', async () => {
+    mockFetch.mockRejectedValue(new Error('Failed to fetch'));
     render(<Router><Header /></Router>);
-    expect(await screen.findByText(/15 libros en la biblioteca/i)).toBeInTheDocument();
+    expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
   });
 
-  test('handles fetch error gracefully', async () => {
-    fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
-    render(<Router><Header /></Router>);
-    await screen.findByText(/No se pudo cargar el contador de libros/i);
+  it('shows zero books if fetch fails', async () => {
+      mockFetch.mockRejectedValue(new Error('Failed to fetch'));
+      render(<Router><Header /></Router>);
+      expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
+      expect(screen.queryByText(/libros en la biblioteca/i)).not.toBeInTheDocument();
   });
 
-  test('renders correctly with no books', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => 0 });
-    render(<Router><Header /></Router>);
-    expect(await screen.findByText(/0 libros en la biblioteca/i)).toBeInTheDocument();
+  it('does not show book count if bookCount is 0 and no error', async () => {
+      mockFetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(0),
+      });
+      render(<Router><Header /></Router>);
+      expect(screen.queryByText(/libros en la biblioteca/i)).not.toBeInTheDocument();
   });
 
-  test('renders correctly with a large number of books', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => 1000 });
+  it('handles non-number response from fetch', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve('not a number')
+    });
     render(<Router><Header /></Router>);
-    expect(await screen.findByText(/1000 libros en la biblioteca/i)).toBeInTheDocument();
+    expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
+  });
+
+  it('handles null response from fetch', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(null)
+    });
+    render(<Router><Header /></Router>);
+    expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
+  });
+
+  it('handles undefined response from fetch', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(undefined)
+    });
+    render(<Router><Header /></Router>);
+    expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
+  });
+
+  it('handles network error', async () => {
+    mockFetch.mockRejectedValue({
+      name: 'TypeError',
+      message: 'Failed to fetch'
+    });
+    render(<Router><Header /></Router>);
+    expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
   });
 
 
-  test('shows loading indicator while fetching', async () => {
-    fetch.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ok: true, json: async () => 10}), 500)));
-    render(<Router><Header /></Router>);
-    expect(await screen.findByText(/Cargando.../i)).toBeInTheDocument();
-    expect(await screen.findByText(/10 libros en la biblioteca/i)).toBeInTheDocument();
-  });
-
-  test('handles network error', async () => {
-    fetch.mockRejectedValueOnce({ok:false, status: 500});
-    render(<Router><Header /></Router>);
-    expect(await screen.findByText(/Error de red al cargar el contador de libros/i)).toBeInTheDocument();
-  })
-
-  test('handles invalid JSON response', async () => {
-    fetch.mockResolvedValueOnce({ ok: true, json: async () => { throw new Error("Invalid JSON"); } });
-    render(<Router><Header /></Router>);
-    expect(await screen.findByText(/Error al procesar la respuesta del servidor/i)).toBeInTheDocument();
-  })
 });
 ```

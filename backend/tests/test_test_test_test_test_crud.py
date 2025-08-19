@@ -11,6 +11,11 @@ mock_book = Mock()
 mock_book.id = 1
 mock_book.file_path = "/tmp/test.txt"
 mock_book.cover_image_url = "/tmp/cover.jpg"
+mock_book.title = "Test Book"
+mock_book.author = "Test Author"
+mock_book.category = "Test Category"
+mock_book.url = "Test URL"
+
 mock_book_2 = Mock()
 mock_book_2.id = 2
 mock_book_2.file_path = "/tmp/test2.txt"
@@ -22,49 +27,46 @@ mock_book_no_path.id = 4
 mock_book_no_cover = Mock()
 mock_book_no_cover.id = 5
 mock_book_no_cover.file_path = "/tmp/test5.txt"
+mock_book_no_title = Mock()
+mock_book_no_title.id = 6
 
 
 def test_get_book_by_path():
-    mock_session.query().filter().first.return_value = mock_book
+    mock_session.query().filter().first.side_effect = [mock_book, None, None, None]
     assert crud.get_book_by_path(mock_session, "/tmp/test.txt") == mock_book
-    mock_session.query().filter().first.return_value = None
     assert crud.get_book_by_path(mock_session, "/tmp/nonexistent.txt") is None
     assert crud.get_book_by_path(mock_session, "") is None
     assert crud.get_book_by_path(mock_session, None) is None
 
 
 def test_get_book_by_title():
-    mock_session.query().filter().first.return_value = mock_book
+    mock_session.query().filter().first.side_effect = [mock_book, None, None, None]
     assert crud.get_book_by_title(mock_session, "Test Book") == mock_book
-    mock_session.query().filter().first.return_value = None
     assert crud.get_book_by_title(mock_session, "Nonexistent Book") is None
     assert crud.get_book_by_title(mock_session, "") is None
     assert crud.get_book_by_title(mock_session, None) is None
 
 
 def test_get_books_by_partial_title():
-    mock_session.query().filter().offset().limit().all.return_value = [mock_book]
+    mock_session.query().filter().offset().limit().all.side_effect = [[mock_book], [], [], []]
     assert crud.get_books_by_partial_title(mock_session, "Test") == [mock_book]
-    mock_session.query().filter().offset().limit().all.return_value = []
     assert crud.get_books_by_partial_title(mock_session, "Nonexistent") == []
     assert crud.get_books_by_partial_title(mock_session, "") == []
     assert crud.get_books_by_partial_title(mock_session, None) == []
 
 
 def test_get_books():
-    mock_session.query().filter().order_by().all.return_value = [mock_book]
+    mock_session.query().filter().order_by().all.side_effect = [[mock_book], []]
     assert crud.get_books(mock_session) == [mock_book]
     assert crud.get_books(mock_session, category="Test") == [mock_book]
     assert crud.get_books(mock_session, author="Test") == [mock_book]
     assert crud.get_books(mock_session, search="Test") == [mock_book]
-    mock_session.query().filter().order_by().all.return_value = []
     assert crud.get_books(mock_session) == []
 
 
 def test_get_categories():
-    mock_session.query().distinct().order_by().all.return_value = [("Test",)]
+    mock_session.query().distinct().order_by().all.side_effect = [[("Test",)], []]
     assert crud.get_categories(mock_session) == ["Test"]
-    mock_session.query().distinct().order_by().all.return_value = []
     assert crud.get_categories(mock_session) == []
 
 
@@ -80,8 +82,10 @@ def test_create_book():
         crud.create_book(mock_session, "Test Title", "Test Author", "Test Category", "", "/tmp/test.txt")
 
 
-def test_delete_book():
-    mock_session.query().filter().first.return_value = mock_book
+@patch('os.remove')
+def test_delete_book(mock_remove):
+    mock_remove.return_value = None
+    mock_session.query().filter().first.side_effect = [mock_book, None, None, mock_book_no_files, mock_book_no_path, mock_book_no_cover]
     mock_session.delete.return_value = None
     mock_session.commit.return_value = None
     os.makedirs("/tmp", exist_ok=True)
@@ -92,20 +96,17 @@ def test_delete_book():
     assert crud.delete_book(mock_session, 1) == mock_book
     assert not os.path.exists("/tmp/test.txt")
     assert not os.path.exists("/tmp/cover.jpg")
-
-    mock_session.query().filter().first.return_value = None
     assert crud.delete_book(mock_session, 2) is None
     assert crud.delete_book(mock_session, None) is None
-    mock_session.query().filter().first.return_value = mock_book_no_files
-    assert crud.delete_book(mock_session,3) == mock_book_no_files
-    mock_session.query().filter().first.return_value = mock_book_no_path
+    assert crud.delete_book(mock_session, 3) == mock_book_no_files
     assert crud.delete_book(mock_session, 4) == mock_book_no_path
-    mock_session.query().filter().first.return_value = mock_book_no_cover
     assert crud.delete_book(mock_session, 5) == mock_book_no_cover
 
 
-def test_delete_books_by_category():
-    mock_session.query().filter().all.return_value = [mock_book]
+@patch('os.remove')
+def test_delete_books_by_category(mock_remove):
+    mock_remove.return_value = None
+    mock_session.query().filter().all.side_effect = [[mock_book], []]
     mock_session.delete.return_value = None
     mock_session.commit.return_value = None
     os.makedirs("/tmp", exist_ok=True)
@@ -113,15 +114,13 @@ def test_delete_books_by_category():
         f.write("test")
     assert crud.delete_books_by_category(mock_session, "Test") == 1
     assert not os.path.exists("/tmp/test.txt")
-    mock_session.query().filter().all.return_value = []
     assert crud.delete_books_by_category(mock_session, "Nonexistent") == 0
     assert crud.delete_books_by_category(mock_session, None) == 0
 
 
 def test_get_books_count():
-    mock_session.query().count.return_value = 1
+    mock_session.query().count.side_effect = [1, 0]
     assert crud.get_books_count(mock_session) == 1
-    mock_session.query().count.return_value = 0
     assert crud.get_books_count(mock_session) == 0
 
 
