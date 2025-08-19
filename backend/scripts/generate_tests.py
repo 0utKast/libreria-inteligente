@@ -2,6 +2,7 @@ import os
 import sys
 import google.generativeai as genai
 import pathlib
+import re
 
 # --- Configuration ---
 try:
@@ -96,9 +97,9 @@ def generate_test_file(file_path_str):
         model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         test_code = response.text
-        # A common issue is Gemini wrapping code in ```python ... ```
-        if test_code.startswith("```"):
-            test_code = '\n'.join(test_code.split('\n')[1:-1])
+        
+        # Robustly remove markdown code fences and strip whitespace
+        test_code = re.sub(r"^```(?:python|javascript)?\s*|\s*```$", "", test_code, flags=re.MULTILINE).strip()
 
     except Exception as e:
         print(f"Error calling Gemini API: {e}")

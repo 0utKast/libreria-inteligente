@@ -1,3 +1,4 @@
+# Final test comment to trigger workflow
 from sqlalchemy import Column, Integer, String
 from database import Base
 
