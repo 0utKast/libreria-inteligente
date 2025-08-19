@@ -108,6 +108,7 @@ def process_epub(file_path: str, static_dir: str) -> dict:
     return {"text": text, "cover_image_url": cover_path}
 
 # --- Configuración de la App FastAPI ---
+# Test comment
 app = FastAPI()
 STATIC_COVERS_DIR = "static/covers"
 os.makedirs(STATIC_COVERS_DIR, exist_ok=True)

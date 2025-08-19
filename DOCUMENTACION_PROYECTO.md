@@ -152,4 +152,3 @@ Componente para mostrar la lista de categorías.  Realiza peticiones al backend 
 *   `/tools/convert-epub-to-pdf` (POST): Convertir EPUB a PDF.
 *   `/rag/upload-book/` (POST): Subir libro para RAG.
 *   `/rag/query/` (POST): Consultar RAG.
-
