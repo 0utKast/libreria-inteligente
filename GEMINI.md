@@ -109,10 +109,12 @@ Based on the recent Pull Request review, here are some suggestions for future im
 
 ### Automated Unit Test Execution
 
-**Suggestion:** Implement a GitHub Action to automatically run all unit tests (both backend Python tests and frontend JavaScript tests) on every Pull Request.
-**Benefit:** Provides immediate feedback on code quality and prevents merging code that breaks existing tests.
-**Considerations:**
-*   Requires setting up Python and Node.js environments.
-*   Running `pytest` for backend tests.
-*   Running `npm test` for frontend tests.
-*   Reporting test results back to the Pull Request status checks.
+**Purpose:** Automatically runs all unit tests (both backend Python tests and frontend JavaScript tests) on every Pull Request.
+**Workflow File:** `.github/workflows/run-tests.yml`
+**Trigger:** `pull_request` to `main` branch.
+**Mechanism:**
+1.  Sets up Python and Node.js environments.
+2.  Installs dependencies for both backend and frontend.
+3.  Runs `pytest` for backend tests.
+4.  Runs `npm test` for frontend tests.
+5.  Reports test results back to the Pull Request status checks.
