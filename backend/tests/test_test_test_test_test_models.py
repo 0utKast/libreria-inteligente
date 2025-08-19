@@ -88,4 +88,11 @@ def test_book_creation_none_values():
     book = Book(title="Title", author="Author", category="Category", cover_image_url=None, file_path="/path/to/file.pdf")
     assert book.cover_image_url is None
 
+def test_book_creation_with_numbers_in_fields():
+    book = Book(title="Title123", author="Author456", category="Category789", file_path="/path/to/file.pdf")
+    assert book.title == "Title123"
+    assert book.author == "Author456"
+    assert book.category == "Category789"
+
+
 ```

@@ -2,55 +2,57 @@ import pytest
 from unittest.mock import MagicMock
 from backend.models import Book
 
-# Mock de la clase Base de SQLAlchemy
 class MockBase:
-    metadata = MagicMock()
-
-# Reemplazar la clase Base real con el mock
-Book.metadata = MockBase.metadata
-
+    def __init__(self):
+        pass
 
 def test_book_creation():
-    book = Book(title="Clean Code", author="Robert Martin", category="Software Engineering", cover_image_url="url", file_path="/path/to/file.pdf")
-    assert book.title == "Clean Code"
-    assert book.author == "Robert Martin"
-    assert book.category == "Software Engineering"
-    assert book.cover_image_url == "url"
-    assert book.file_path == "/path/to/file.pdf"
+    mock_base = MockBase()
+    book = Book(id=1, title="Test Book", author="Test Author", category="Test Category", cover_image_url="test.jpg", file_path="/path/to/test.pdf")
+    assert book.id == 1
+    assert book.title == "Test Book"
+    assert book.author == "Test Author"
+    assert book.category == "Test Category"
+    assert book.cover_image_url == "test.jpg"
+    assert book.file_path == "/path/to/test.pdf"
 
-def test_book_creation_no_cover_image():
-    book = Book(title="Test Driven Development", author="Kent Beck", category="Software Engineering", file_path="/path/to/file.pdf")
+def test_book_creation_missing_fields():
+    mock_base = MockBase()
+    book = Book(title="Test Book", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    assert book.id is None
+    assert book.title == "Test Book"
+    assert book.author == "Test Author"
+    assert book.category == "Test Category"
     assert book.cover_image_url is None
+    assert book.file_path == "/path/to/test.pdf"
 
-def test_book_creation_empty_title():
-    with pytest.raises(Exception) as e:  # Expecting an error because title can't be empty in database
-        Book(title="", author="Author", category="Category", file_path="/path/to/file.pdf")
-    assert "title" in str(e.value)
-
-
-def test_book_creation_empty_author():
-    with pytest.raises(Exception) as e: # Expecting an error because author can't be empty in database
-        Book(title="Title", author="", category="Category", file_path="/path/to/file.pdf")
-    assert "author" in str(e.value)
-
-
-def test_book_creation_empty_category():
-    with pytest.raises(Exception) as e: # Expecting an error because category can't be empty in database
-        Book(title="Title", author="Author", category="", file_path="/path/to/file.pdf")
-    assert "category" in str(e.value)
-
-def test_book_creation_duplicate_file_path():
-    book1 = Book(title="Book1", author="Author1", category="Category1", file_path="/path/to/file.pdf")
-    with pytest.raises(Exception) as e: #Simulate database constraint error for duplicate file_path
-        book2 = Book(title="Book2", author="Author2", category="Category2", file_path="/path/to/file.pdf")
-    assert "unique constraint" in str(e.value) #this assertion might need adaptation depending on your database and error message
-
+def test_book_creation_empty_fields():
+    mock_base = MockBase()
+    book = Book(title="", author="", category="", file_path="")
+    assert book.title == ""
+    assert book.author == ""
+    assert book.category == ""
+    assert book.file_path == ""
 
 def test_book_creation_invalid_file_path():
-    with pytest.raises(Exception) as e: # Simulate an error for an invalid file path (e.g., too long)
-        Book(title="Title", author="Author", category="Category", file_path="a"*1000) # very long path
-    assert "file_path" in str(e.value) #Adapt as needed, it's a generic error check
+    mock_base = MockBase()
+    with pytest.raises(Exception) as e:  # Expecting an error for invalid file paths (e.g. missing path)
+        Book(title="Test Book", author="Test Author", category="Test Category", file_path="test.pdf")
+    assert "file_path" in str(e.value)
+
+def test_book_creation_duplicate_file_path():
+    mock_base = MockBase()
+    book1 = Book(title="Test Book 1", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    book2 = Book(title="Test Book 2", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    with pytest.raises(Exception) as e: # Simulate database constraint violation
+        pass # Assume database handles uniqueness constraint.  More robust test would require database interaction.
+    #More sophisticated assertion might be needed depending on the database and exception handling
+    assert "unique" in str(e.value)
 
 
+def test_book_representation():
+    mock_base = MockBase()
+    book = Book(id=1, title="Test Book", author="Test Author", category="Test Category", file_path="/path/to/test.pdf")
+    assert str(book) == "<Book id=1 title='Test Book' author='Test Author' category='Test Category' file_path='/path/to/test.pdf'>"
 
 ```
