@@ -1,4 +1,4 @@
-name: Generación Automática de Tests
+name: 'NUEVO - Generador de Tests (ID: 123)'
 
 on:
   pull_request:
@@ -44,10 +44,19 @@ jobs:
 
       - name: Commit de los nuevos tests a la PR
         if: steps.changed_files.outputs.any_changed == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: 'test: Añadir tests unitarios autogenerados por Gemini'
-          file_pattern: '**/*.test.js backend/tests/**/*.py'
-          commit_user_name: 'Gemini Bot'
-          commit_user_email: 'gemini-bot@example.com'
-          commit_author: 'Gemini Bot <gemini-bot@example.com>'
+        run: |
+          git config user.name "Gemini Bot"
+          git config user.email "gemini-bot@example.com"
+          
+          # Use find to add any generated test files. This is more robust than globs.
+          find backend/tests -type f -name "*.py" -exec git add {} + || echo "No python tests found to add."
+          find frontend/src -type f -name "*.test.js" -exec git add {} + || echo "No javascript tests found to add."
+
+          # Only commit and push if there are actual changes staged.
+          if git diff --staged --quiet; then
+            echo "No new test files were generated to commit."
+          else
+            git commit -m "test: Añadir tests unitarios autogenerados por Gemini"
+            # Push the new commit to the PR's branch
+            git push origin HEAD:${{ github.head_ref }}
+          fi

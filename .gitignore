@@ -30,3 +30,6 @@ __pycache__/
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
+
+# Archivos de errores
+errores.txt
