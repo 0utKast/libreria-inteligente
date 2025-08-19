@@ -1,58 +1,59 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
-jest.mock('./Header', () => () => <div>Header</div>);
-jest.mock('./LibraryView', () => () => <div>LibraryView</div>);
-jest.mock('./UploadView', () => () => <div>UploadView</div>);
-jest.mock('./CategoriesView', () => () => <div>CategoriesView</div>);
-jest.mock('./ToolsView', () => () => <div>ToolsView</div>);
-jest.mock('./ReaderView', () => () => <div>ReaderView</div>);
-jest.mock('./RagView', () => () => <div>RagView</div>);
+
+jest.mock('./Header', () => () => <div data-testid="header">Header</div>);
+jest.mock('./LibraryView', () => () => <div data-testid="library">Library</div>);
+jest.mock('./UploadView', () => () => <div data-testid="upload">Upload</div>);
+jest.mock('./CategoriesView', () => () => <div data-testid="categories">Categories</div>);
+jest.mock('./ToolsView', () => () => <div data-testid="tools">Tools</div>);
+jest.mock('./ReaderView', () => () => <div data-testid="reader">Reader</div>);
+jest.mock('./RagView', () => () => <div data-testid="rag">Rag</div>);
 
 
 test('renders App component', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  expect(screen.getByText('Header')).toBeInTheDocument();
-  expect(screen.getByText('LibraryView')).toBeInTheDocument();
+  expect(screen.getByTestId('header')).toBeInTheDocument();
+  expect(screen.getByTestId('library')).toBeInTheDocument();
 });
 
-test('navigates to /upload', () => {
+test('navigates to upload view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
   fireEvent.click(screen.getByRole('link', { name: /upload/i }));
-  expect(screen.getByText('UploadView')).toBeInTheDocument();
+  expect(screen.getByTestId('upload')).toBeInTheDocument();
 });
 
-
-test('navigates to /etiquetas', () => {
+test('navigates to categories view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
   fireEvent.click(screen.getByRole('link', { name: /etiquetas/i }));
-  expect(screen.getByText('CategoriesView')).toBeInTheDocument();
+  expect(screen.getByTestId('categories')).toBeInTheDocument();
 });
 
-test('navigates to /herramientas', () => {
+test('navigates to tools view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
   fireEvent.click(screen.getByRole('link', { name: /herramientas/i }));
-  expect(screen.getByText('ToolsView')).toBeInTheDocument();
+  expect(screen.getByTestId('tools')).toBeInTheDocument();
 });
 
-test('navigates to /rag', () => {
+test('navigates to rag view', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
   fireEvent.click(screen.getByRole('link', { name: /rag/i }));
-  expect(screen.getByText('RagView')).toBeInTheDocument();
+  expect(screen.getByTestId('rag')).toBeInTheDocument();
 });
 
-test('navigates to /leer/:bookId', () => {
-    render(<BrowserRouter><App /></BrowserRouter>);
-    //Simulate a link to /leer/123
-    //This test requires a more robust solution to simulate dynamic routing.
-    //The implementation would depend on the specific routing library used.
-});
-
-
-test('renders default route', () => {
+test('navigates to reader view with bookId', () => {
   render(<BrowserRouter><App /></BrowserRouter>);
-  expect(screen.getByText('LibraryView')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('link', { name: /leer\/123/i }));
+  expect(screen.getByTestId('reader')).toBeInTheDocument();
+});
+
+
+test('renders default view when path is invalid', () => {
+    render(<BrowserRouter><App /></BrowserRouter>, {route: '/invalid-path'});
+    expect(screen.getByTestId('library')).toBeInTheDocument();
+
 });
 
 ```

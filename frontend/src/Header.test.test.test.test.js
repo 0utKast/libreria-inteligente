@@ -95,12 +95,12 @@ describe('Header Component', () => {
     fetch.mockRejectedValueOnce({ok:false, status: 500});
     render(<Router><Header /></Router>);
     expect(await screen.findByText(/Error de red al cargar el contador de libros/i)).toBeInTheDocument();
-  })
+  });
 
   test('handles invalid JSON response', async () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => { throw new Error("Invalid JSON"); } });
     render(<Router><Header /></Router>);
     expect(await screen.findByText(/Error al procesar la respuesta del servidor/i)).toBeInTheDocument();
-  })
+  });
 });
 ```
