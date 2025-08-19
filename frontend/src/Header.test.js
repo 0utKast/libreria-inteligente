@@ -1,0 +1,74 @@
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import Header from './Header';
+import { BrowserRouter as Router } from 'react-router-dom';
+
+jest.mock('./config', () => ({
+  default: 'http://test-api'
+}));
+
+jest.mock('node-fetch', () => jest.fn());
+const fetch = require('node-fetch');
+
+
+describe('Header Component', () => {
+  beforeEach(() => {
+    fetch.mockClear();
+  });
+
+  test('renders header with initial state', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => 10
+    });
+    render(<Router><Header /></Router>);
+    expect(await screen.findByText(/📚 Librería Inteligente/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 libros en la biblioteca/i)).toBeInTheDocument();
+  });
+
+
+  test('renders error message if fetch fails', async () => {
+    fetch.mockRejectedValueOnce(new Error('Failed to fetch'));
+    render(<Router><Header /></Router>);
+    expect(await screen.findByText(/No se pudo cargar el contador de libros/i)).toBeInTheDocument();
+    expect(screen.queryByText(/10 libros en la biblioteca/i)).not.toBeInTheDocument();
+  });
+
+  test('toggles menu on hamburger click', () => {
+    render(<Router><Header /></Router>);
+    const hamburgerButton = screen.getByRole('button', { name: /&#9776;/i });
+    fireEvent.click(hamburgerButton);
+    expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
+    fireEvent.click(hamburgerButton);
+    expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
+
+  });
+
+  test('closes menu on link click', () => {
+    render(<Router><Header /></Router>);
+    const hamburgerButton = screen.getByRole('button', { name: /&#9776;/i });
+    fireEvent.click(hamburgerButton);
+    expect(screen.getByRole('navigation').classList.contains('open')).toBe(true);
+    const navLink = screen.getByRole('link', { name: /Mi Biblioteca/i });
+    fireEvent.click(navLink);
+    expect(screen.getByRole('navigation').classList.contains('open')).toBe(false);
+  });
+
+  test('nav links render correctly', () => {
+    render(<Router><Header /></Router>);
+    expect(screen.getByRole('link', { name: /Mi Biblioteca/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Añadir Libro/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Etiquetas/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Herramientas/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Charla sobre libros con la IA/i })).toBeInTheDocument();
+  });
+
+  test('updates book count after fetch', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => 15
+    });
+    render(<Router><Header /></Router>);
+    expect(await screen.findByText(/15 libros en la biblioteca/i)).toBeInTheDocument();
+  });
+});

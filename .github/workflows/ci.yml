@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout del código de la PR
+        uses: actions/checkout@v4
+
+      - name: Obtener archivos modificados
+        id: changed_files
+        uses: tj-actions/changed-files@v44
+        with:
+          files_ignore_pattern: |
+            **/*.md
+            **/*.txt
+
+      - name: Configurar Python
+        if: steps.changed_files.outputs.any_changed == 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias de Python
+        if: steps.changed_files.outputs.any_changed == 'true'
+        run: pip install -r backend/requirements.txt
+
+      - name: Generar Tests con Gemini
+        if: steps.changed_files.outputs.any_changed == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "Archivos modificados para procesar:"
+          echo "${{ steps.changed_files.outputs.all_changed_files }}"
+          python backend/scripts/generate_tests.py ${{ steps.changed_files.outputs.all_changed_files }}
+
+      - name: Commit de los nuevos tests a la PR
+        if: steps.changed_files.outputs.any_changed == 'true'
+        run: |
+          git config user.name "Gemini Bot"
+          git config user.email "gemini-bot@example.com"
+          
+          # Use find to add any generated test files. This is more robust than globs.
+          find backend/tests -type f -name "*.py" -exec git add {} + || echo "No python tests found to add."
+          find frontend/src -type f -name "*.test.js" -exec git add {} + || echo "No javascript tests found to add."
+
+          # Only commit and push if there are actual changes staged.
+          if git diff --staged --quiet; then
+            echo "No new test files were generated to commit."
+          else
+            git commit -m "test: Añadir tests unitarios autogenerados por Gemini"
+            # Push the new commit to the PR's branch
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    needs: generate-tests
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Python dependencies
+      run: |
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -r backend/requirements.txt
+
+    - name: Run Python tests
+      run: |
+        source .venv/bin/activate
+        pytest backend/tests/
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install Node.js dependencies
+      working-directory: ./frontend
+      run: npm install
+
+    - name: Run Node.js tests
+      working-directory: ./frontend
+      run: npm test
