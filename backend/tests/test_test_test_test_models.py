@@ -72,3 +72,37 @@ def test_book_save_success():
     book.save(mock_session)
     mock_session.add.assert_called_once_with(book)
     mock_session.commit.assert_called_once()
+
+def test_book_save_failure():
+    mock_session = Mock()
+    mock_session.commit.side_effect = Exception("Database error")
+    book = Book(title="Book 1", author="Author 1", category="Category 1", file_path="/path/to/file.pdf")
+    with pytest.raises(Exception) as e:
+        book.save(mock_session)
+    assert "Database error" in str(e.value)
+    mock_session.add.assert_called_once_with(book)
+    mock_session.rollback.assert_called_once()
+
+def test_book_creation_with_long_title():
+    long_title = "a" * 256  #Simulate a long title
+    book = Book(title=long_title, author="Author 1", category="Category 1", file_path="/path/to/file.pdf")
+    assert len(book.title) == 256
+
+def test_book_creation_with_long_author():
+    long_author = "a" * 256 #Simulate a long author name
+    book = Book(title="Book 1", author=long_author, category="Category 1", file_path="/path/to/file.pdf")
+    assert len(book.author) == 256
+
+def test_book_creation_with_long_category():
+    long_category = "a" * 256 #Simulate a long category name
+    book = Book(title="Book 1", author="Author 1", category=long_category, file_path="/path/to/file.pdf")
+    assert len(book.category) == 256
+
+def test_book_creation_with_long_filepath():
+    long_filepath = "a" * 512 #Simulate a long filepath, assuming a limit around this number
+    with pytest.raises(ValueError) as e:
+        book = Book(title="Book 1", author="Author 1", category="Category 1", file_path=long_filepath)
+    assert "file_path too long" in str(e.value) # Assuming a validation for filepath length exists.
+
+
+```
